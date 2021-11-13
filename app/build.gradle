@@ -42,7 +42,7 @@ android {
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = [
-                        "resourcePackageName": android.defaultConfig.applicationId
+                        "resourcePackageName": "org.autojs.autojs"
                 ]
             }
         }
@@ -62,7 +62,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
-            applicationIdSuffix ".modify.opencv4"
+            applicationIdSuffix ".x"
         }
     }
     compileOptions {
