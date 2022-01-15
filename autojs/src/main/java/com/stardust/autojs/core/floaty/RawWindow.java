@@ -12,12 +12,11 @@ import com.stardust.autojs.R;
 import com.stardust.autojs.core.ui.ViewExtras;
 import com.stardust.autojs.core.ui.inflater.inflaters.Exceptions;
 import com.stardust.autojs.runtime.exception.ScriptInterruptedException;
-import com.stardust.concurrent.VolatileBox;
 import com.stardust.concurrent.VolatileDispose;
 import com.stardust.enhancedfloaty.FloatyService;
 import com.stardust.enhancedfloaty.FloatyWindow;
-import com.stardust.enhancedfloaty.WindowBridge;
 import com.stardust.enhancedfloaty.util.WindowTypeCompat;
+import com.taobao.idlefish.AccessibilityService;
 
 public class RawWindow extends FloatyWindow {
 
@@ -75,11 +74,20 @@ public class RawWindow extends FloatyWindow {
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowTypeCompat.getWindowType(),
+                getWindowType(),
                 flags,
                 PixelFormat.TRANSLUCENT);
         layoutParams.gravity = Gravity.TOP | Gravity.START;
+
         return layoutParams;
+    }
+
+    private int getWindowType() {
+        if (AccessibilityService.Companion.getInstance()!= null
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            return WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
+        }
+        return WindowTypeCompat.getWindowType();
     }
 
     public void disableWindowFocus() {

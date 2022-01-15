@@ -3,6 +3,8 @@ package com.stardust.view.accessibility
 import android.os.Build
 import android.util.Log
 import android.view.KeyEvent
+import android.view.Window
+import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import com.stardust.event.EventDispatcher
@@ -115,6 +117,10 @@ open class AccessibilityService : android.accessibilityservice.AccessibilityServ
 
     fun fastRootInActiveWindow(): AccessibilityNodeInfo? {
         return mFastRootInActiveWindow
+    }
+
+    open fun getWindowManager() : WindowManager? {
+        return null;
     }
 
     companion object {
