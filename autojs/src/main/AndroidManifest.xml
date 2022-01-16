@@ -50,11 +50,9 @@
                 android:resource="@xml/accessibility_service_config"/>
         </service>
 
-        <service android:name="com.stardust.autojs.core.floaty.AccessibilityFloatyService"
-            android:exported="false"/>
-
         <service android:name="com.stardust.enhancedfloaty.FloatyService"
             android:exported="false" tools:node="merge"/>
+
     </application>
 
 </manifest>

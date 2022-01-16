@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityServiceInfo
 import android.os.Build
 import android.view.WindowManager
 import com.stardust.autojs.core.pref.Pref
+import com.stardust.enhancedfloaty.FloatyService
 import com.stardust.view.accessibility.AccessibilityService
 
 class AccessibilityService: AccessibilityService() {
@@ -30,6 +31,10 @@ class AccessibilityService: AccessibilityService() {
     }
 
     override fun getWindowManager() : WindowManager {
-        return windowManager;
+        return windowManager
+    }
+
+    override fun refreshFloatyService() {
+        FloatyService.getInstance()?.refreshAccessWindowManager()
     }
 }
