@@ -5,17 +5,18 @@ import android.util.Log;
 import com.stardust.autojs.runtime.ScriptRuntime;
 
 import java.io.RandomAccessFile;
+import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FileReader {
 
-    private ScriptRuntime runtime;
+    private WeakReference<ScriptRuntime> runtime;
     private final String LOG_TAG = "FILE_READER";
 
     public FileReader(ScriptRuntime runtime) {
-        this.runtime = runtime;
+        this.runtime = new WeakReference<>(runtime);
     }
 
     /**
@@ -34,9 +35,9 @@ public class FileReader {
         if (num <= 0) {
             num = 1000;
         }
-        String filePath = runtime.files.path(fileName);
-        if (!runtime.files.exists(filePath)) {
-            runtime.console.error("文件不存在：" + filePath + " " + fileName);
+        String filePath = runtime.get().files.path(fileName);
+        if (!runtime.get().files.exists(filePath)) {
+            runtime.get().console.error("文件不存在：" + filePath + " " + fileName);
             return null;
         }
         List<String> result = new ArrayList<>();
@@ -84,7 +85,7 @@ public class FileReader {
             java.util.Collections.reverse(result);
             return new FileReadResult(result, readIndex, fileLength, filePath);
         } catch (Exception e) {
-            runtime.console.error(e);
+            runtime.get().console.error(e);
             return null;
         }
     }
@@ -104,9 +105,9 @@ public class FileReader {
         if (num <= 0) {
             num = 1000;
         }
-        String filePath = runtime.files.path(fileName);
-        if (!runtime.files.exists(filePath)) {
-            runtime.console.error("文件不存在：" + filePath + " " + fileName);
+        String filePath = runtime.get().files.path(fileName);
+        if (!runtime.get().files.exists(filePath)) {
+            runtime.get().console.error("文件不存在：" + filePath + " " + fileName);
             return null;
         }
         List<String> result = new ArrayList<>();
@@ -143,7 +144,7 @@ public class FileReader {
             }
             return new FileReadResult(result, readIndex, fileLength, filePath);
         } catch (Exception e) {
-            runtime.console.error(e);
+            runtime.get().console.error(e);
             return null;
         }
     }
