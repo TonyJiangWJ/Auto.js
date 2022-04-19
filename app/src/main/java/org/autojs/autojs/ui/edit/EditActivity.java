@@ -7,10 +7,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
@@ -23,20 +19,24 @@ import com.stardust.autojs.core.permission.RequestPermissionCallbacks;
 import com.stardust.autojs.execution.ScriptExecution;
 import com.stardust.pio.PFiles;
 
-import org.autojs.autojs.R;
-import org.autojs.autojs.storage.file.TmpScriptFiles;
-import org.autojs.autojs.tool.Observers;
-import org.autojs.autojs.ui.BaseActivity;
-import org.autojs.autojs.theme.dialog.ThemeColorMaterialDialogBuilder;
-
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
+import org.autojs.autojs.R;
+import org.autojs.autojs.storage.file.TmpScriptFiles;
+import org.autojs.autojs.theme.dialog.ThemeColorMaterialDialogBuilder;
+import org.autojs.autojs.tool.Observers;
+import org.autojs.autojs.ui.BaseActivity;
 import org.autojs.autojs.ui.main.MainActivity_;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -158,16 +158,31 @@ public class EditActivity extends BaseActivity implements OnActivityResultDelega
     @Override
     public void onActionModeStarted(ActionMode mode) {
         Log.d(LOG_TAG, "onActionModeStarted: " + mode);
-        Menu menu = mode.getMenu();
-        MenuItem item = menu.getItem(menu.size() - 1);
-        menu.add(item.getGroupId(), R.id.action_delete_line, 10000, R.string.text_delete_line);
-        menu.add(item.getGroupId(), R.id.action_copy_line, 20000, R.string.text_copy_line);
+        removeUselessMenu(mode.getMenu());
         super.onActionModeStarted(mode);
+    }
+
+    private void removeUselessMenu(Menu menu) {
+        List<Integer> removeMenuId = new ArrayList<>();
+        List<String> persistTitle = Arrays.asList("全选", "剪切", "复制", "粘贴", "Select all", "Cut", "Copy", "Paste");
+        for (int index = 0; index < menu.size(); index++) {
+            String title = menu.getItem(index).getTitle().toString();
+            if (!persistTitle.contains(title)) {
+                removeMenuId.add(menu.getItem(index).getItemId());
+            }
+        }
+        // 判断一下大小避免全给删了
+        if (menu.size() > removeMenuId.size()) {
+            for (Integer menuId : removeMenuId) {
+                menu.removeItem(menuId);
+            }
+        }
     }
 
     @Override
     public void onSupportActionModeStarted(@NonNull androidx.appcompat.view.ActionMode mode) {
         Log.d(LOG_TAG, "onSupportActionModeStarted: mode = " + mode);
+        removeUselessMenu(mode.getMenu());
         super.onSupportActionModeStarted(mode);
     }
 
@@ -246,6 +261,7 @@ public class EditActivity extends BaseActivity implements OnActivityResultDelega
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         mMediator.onActivityResult(requestCode, resultCode, data);
     }
 
