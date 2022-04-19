@@ -5,10 +5,11 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import androidx.multidex.MultiDexApplication
+import android.provider.Settings
 import android.view.View
 import android.widget.ImageView
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.multidex.MultiDexApplication
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
@@ -16,6 +17,7 @@ import com.flurry.android.FlurryAgent
 import com.stardust.app.GlobalAppContext
 import com.stardust.autojs.core.ui.inflater.ImageLoader
 import com.stardust.autojs.core.ui.inflater.util.Drawables
+import com.stardust.autojs.runtime.api.Device
 import com.stardust.theme.ThemeColor
 import com.tencent.bugly.Bugly
 import com.tencent.bugly.crashreport.CrashReport
@@ -55,12 +57,16 @@ class App : MultiDexApplication() {
                 .build(this, "V5B5VT5NP6TT5F78PZXR")
     }
 
+    @SuppressLint("HardwareIds")
     private fun setUpDebugEnvironment() {
-        Bugly.isDev = false
+        Bugly.isDev = BuildConfig.DEBUG
         val crashHandler = CrashHandler(ErrorReportActivity::class.java)
 
         val strategy = CrashReport.UserStrategy(applicationContext)
         strategy.setCrashHandleCallback(crashHandler)
+        strategy.deviceModel = Device.model
+        strategy.deviceID = Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID)
+        CrashReport.setIsDevelopmentDevice(this, BuildConfig.DEBUG)
 
         CrashReport.initCrashReport(applicationContext, BUGLY_APP_ID, false, strategy)
 

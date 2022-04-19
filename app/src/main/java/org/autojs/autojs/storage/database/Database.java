@@ -24,7 +24,7 @@ public abstract class Database<M extends BaseModel> {
 
     public Database(SQLiteOpenHelper sqLiteOpenHelper, String table) {
         mWritableSQLiteDatabase = sqLiteOpenHelper.getWritableDatabase();
-        mReadableSQLiteDatabase = sqLiteOpenHelper.getWritableDatabase();
+        mReadableSQLiteDatabase = sqLiteOpenHelper.getReadableDatabase();
         mTable = table;
     }
 
