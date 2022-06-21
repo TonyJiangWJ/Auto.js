@@ -10,6 +10,9 @@ public class OcrResultModel {
     private List<Integer> wordIndex;
     private String label;
     private float confidence;
+    private float clsIdx;
+    private String clsLabel;
+    private float clsConfidence;
 
     public OcrResultModel() {
         super();
@@ -48,5 +51,42 @@ public class OcrResultModel {
 
     public void setConfidence(float confidence) {
         this.confidence = confidence;
+    }
+
+    public float getClsIdx() {
+        return clsIdx;
+    }
+
+    public void setClsIdx(float idx) {
+        this.clsIdx = idx;
+    }
+
+    public String getClsLabel() {
+        return clsLabel;
+    }
+
+    public void setClsLabel(String label) {
+        this.clsLabel = label;
+    }
+
+    public float getClsConfidence() {
+        return clsConfidence;
+    }
+
+    public void setClsConfidence(float confidence) {
+        this.clsConfidence = confidence;
+    }
+
+    @Override
+    public String toString() {
+        return "OcrResultModel{" +
+                "points=" + points +
+                ", wordIndex=" + wordIndex +
+                ", label='" + label + '\'' +
+                ", confidence=" + confidence +
+                ", clsIdx=" + clsIdx +
+                ", clsLabel='" + clsLabel + '\'' +
+                ", clsConfidence=" + clsConfidence +
+                '}';
     }
 }

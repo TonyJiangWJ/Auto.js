@@ -36,7 +36,7 @@ public class OCRPredictorNative {
         try {
             this.config = config;
             loadLibrary();
-            nativePointer = init(config.detModelFilename, config.recModelFilename, config.clsModelFilename,
+            nativePointer = init(config.detModelFilename, config.recModelFilename, config.clsModelFilename, config.useOpencl,
                     config.cpuThreadNum, config.cpuPower);
             Log.i("OCRPredictorNative", "load success " + nativePointer);
         } finally {
@@ -45,12 +45,11 @@ public class OCRPredictorNative {
     }
 
 
-    public ArrayList<OcrResultModel> runImage(float[] inputData, int width, int height, int channels, Bitmap originalImage) {
+    public ArrayList<OcrResultModel> runImage(Bitmap originalImage, int max_size_len, int run_det, int run_cls, int run_rec) {
         lock.lock();
         try {
-            Log.i("OCRPredictorNative", "begin to run image " + inputData.length + " " + width + " " + height);
-            float[] dims = new float[]{1, channels, height, width};
-            float[] rawResults = forward(nativePointer, inputData, dims, originalImage);
+            Log.i("OCRPredictorNative", "begin to run image");
+            float[] rawResults = forward(nativePointer, originalImage, max_size_len, run_det, run_cls, run_rec);
             return postprocess(rawResults);
         } finally {
             lock.unlock();
@@ -58,6 +57,7 @@ public class OCRPredictorNative {
     }
 
     public static class Config {
+        public int useOpencl;
         public int cpuThreadNum;
         public String cpuPower;
         public String detModelFilename;
@@ -73,9 +73,9 @@ public class OCRPredictorNative {
         }
     }
 
-    protected native long init(String detModelPath, String recModelPath, String clsModelPath, int threadNum, String cpuMode);
+    protected native long init(String detModelPath, String recModelPath, String clsModelPath, int useOpencl, int threadNum, String cpuMode);
 
-    protected native float[] forward(long pointer, float[] buf, float[] ddims, Bitmap originalImage);
+    protected native float[] forward(long pointer, Bitmap originalImage, int max_size_len, int run_det, int run_cls, int run_rec);
 
     protected native void release(long pointer);
 
@@ -87,7 +87,7 @@ public class OCRPredictorNative {
             int point_num = Math.round(raw[begin]);
             int word_num = Math.round(raw[begin + 1]);
             OcrResultModel model = parse(raw, begin + 2, point_num, word_num);
-            begin += 2 + 1 + point_num * 2 + word_num;
+            begin += 2 + 1 + point_num * 2 + word_num + 2;
             results.add(model);
         }
 
@@ -107,6 +107,9 @@ public class OCRPredictorNative {
             int index = Math.round(raw[current + i]);
             model.addWordIndex(index);
         }
+        current += wordNum;
+        model.setClsIdx(raw[current]);
+        model.setClsConfidence(raw[current + 1]);
         Log.i("OCRPredictorNative", "word finished " + wordNum);
         return model;
     }

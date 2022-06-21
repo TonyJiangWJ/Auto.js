@@ -41,16 +41,20 @@ dependencies {
 }
 
 def archives = [
-        [
-                'src' : 'https://paddleocr.bj.bcebos.com/dygraph_v2.0/lite/paddle_lite_libs_v2_9_0.tar.gz',
-                'dest': 'PaddleLite'
-        ],
+//        [
+//                'src' : 'https://github.com/PaddlePaddle/Paddle-Lite/releases/download/v2.11/inference_lite_lib.android.armv8.clang.c++_shared.with_extra.with_cv.tar.gz',
+//                'dest': 'PaddleLiteArmv8'
+//        ],
+//        [
+//                'src' : 'https://github.com/PaddlePaddle/Paddle-Lite/releases/download/v2.11/inference_lite_lib.android.armv7.clang.c++_shared.with_extra.with_cv.tar.gz',
+//                'dest': 'PaddleLiteArmv7'
+//        ],
 //        [
 //                'src' : 'https://paddlelite-demo.bj.bcebos.com/libs/android/opencv-4.2.0-android-sdk.tar.gz',
 //                'dest': 'OpenCV'
 //        ],
 //        [
-//                'src' : 'https://paddleocr.bj.bcebos.com/dygraph_v2.0/lite/ocr_v2_for_cpu.tar.gz',
+//                'src' : 'https://paddleocr.bj.bcebos.com/PP-OCRv2/lite/ch_PP-OCRv2.tar.gz',
 //                'dest' : 'src/main/assets/models'
 //        ],
 //        [
@@ -61,7 +65,7 @@ def archives = [
 
 def zipArchives = [
         [
-            'src' : 'https://phoenixnap.dl.sourceforge.net/project/opencvlibrary/4.5.5/opencv-4.5.5-android-sdk.zip',
+            'src' : 'https://github.com/opencv/opencv/releases/download/4.5.5/opencv-4.5.5-android-sdk.zip',
             'dest': 'OpenCV'
         ]
 ]
@@ -91,6 +95,30 @@ task downloadAndExtractArchives(type: DefaultTask) {
                 copy {
                     from tarTree("${cachePath}/${cacheName}.tar.gz")
                     into "${archive.dest}"
+                }
+            }
+            // paddle-lite 特殊处理
+            if (archive.dest=="PaddleLiteArmv8") {
+                copy {
+                    from "${archive.dest}/inference_lite_lib.android.armv8.clang.c++_shared.with_extra.with_cv/cxx/include"
+                    into "PaddleLite/cxx/include"
+                }
+                copy {
+                    from "${archive.dest}/inference_lite_lib.android.armv8.clang.c++_shared.with_extra.with_cv/cxx/lib"
+                    into "PaddleLite/cxx/libs/arm64-v8a"
+                }
+                copy {
+                    from "${archive.dest}/inference_lite_lib.android.armv8.clang.c++_shared.with_extra.with_cv/java/so"
+                    into "PaddleLite/java/libs/arm64-v8a/"
+                }
+            } else if (archive.dest=="PaddleLiteArmv7") {
+                copy {
+                    from "${archive.dest}/inference_lite_lib.android.armv7.clang.c++_shared.with_extra.with_cv/cxx/lib"
+                    into "PaddleLite/cxx/libs/armeabi-v7a"
+                }
+                copy {
+                    from "${archive.dest}/inference_lite_lib.android.armv7.clang.c++_shared.with_extra.with_cv/java/so"
+                    into "PaddleLite/java/libs/armeabi-v7a/"
                 }
             }
         }

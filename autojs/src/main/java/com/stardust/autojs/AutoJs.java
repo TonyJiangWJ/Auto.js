@@ -277,7 +277,7 @@ public abstract class AutoJs {
     public void setLogFilePath(String path, boolean isDebug) {
         LogConfigurator logConfigurator = new LogConfigurator();
         String pid = String.valueOf(android.os.Process.myPid());
-        logConfigurator.setFilePattern("%d - [%p]\t[" + pid + "] %c - %m%n");
+        logConfigurator.setFilePattern("%d - [%p]\t[" + pid + "-%t] %c - %m%n");
         String logPath = path + "/.logs/";
         File logDir = new File(logPath);
         if (!logDir.exists() && !logDir.mkdirs()) {
@@ -290,7 +290,7 @@ public abstract class AutoJs {
         }
         String logFileName = path + "/.logs/autojs-log4j" + (isDebug ? "-debug" : "") + ".txt";
         try {
-            PFiles.write(logFileName, "");
+            PFiles.append(logFileName, "");
         } catch (Exception e) {
             Log.d("LOG4J-CONFIG", "日志文件无写入权限，无法记录log4j日志");
             return;

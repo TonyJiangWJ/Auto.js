@@ -63,7 +63,7 @@ public class AlarmManagerProvider extends BroadcastReceiver implements WorkProvi
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        autoJsLog( "onReceiveRtcWakeUp");
+        autoJsLog("onReceiveRtcWakeUp");
         checkTasks(context, false);
         setupNextRtcWakeup(context, System.currentTimeMillis() + INTERVAL);
     }
@@ -71,7 +71,7 @@ public class AlarmManagerProvider extends BroadcastReceiver implements WorkProvi
 
     @Override
     public void enqueueWork(TimedTask timedTask, long timeWindow) {
-        autoJsLog( "enqueue task:" + timedTask.toString());
+        autoJsLog("enqueue task:" + timedTask.toString());
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         PendingIntent op = timedTask.createPendingIntent(context);
         setExactCompat(alarmManager, op, System.currentTimeMillis() + timeWindow);
@@ -79,13 +79,13 @@ public class AlarmManagerProvider extends BroadcastReceiver implements WorkProvi
 
     @Override
     public void enqueuePeriodicWork(int delay) {
-        autoJsLog( "checkTasksRepeatedlyIfNeeded");
+        autoJsLog("checkTasksRepeatedlyIfNeeded");
         checkTasksRepeatedlyIfNeeded(context);
     }
 
     @Override
     public void cancel(TimedTask timedTask) {
-        autoJsLog( "cancel task:" + timedTask);
+        autoJsLog("cancel task:" + timedTask);
         AlarmManager alarmManager = getAlarmManager(context);
         alarmManager.cancel(timedTask.createPendingIntent(context));
     }
@@ -93,7 +93,7 @@ public class AlarmManagerProvider extends BroadcastReceiver implements WorkProvi
     @Override
     @SuppressLint("CheckResult")
     public void cancelAllWorks() {
-        autoJsLog( "cancel all tasks");
+        autoJsLog("cancel all tasks");
         stopRtcRepeating(context);
         TimedTaskManager.getInstance()
                 .getAllTasks()
@@ -113,7 +113,7 @@ public class AlarmManagerProvider extends BroadcastReceiver implements WorkProvi
 
     @SuppressLint("CheckResult")
     public void checkTasks(Context context, boolean force) {
-        autoJsLog( "check tasks: force = " + force);
+        autoJsLog("check tasks: force = " + force);
         TimedTaskManager.getInstance().getAllTasks()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -123,7 +123,7 @@ public class AlarmManagerProvider extends BroadcastReceiver implements WorkProvi
     public void scheduleTaskIfNeeded(Context context, TimedTask timedTask, boolean force) {
         long millis = timedTask.getNextTime();
         if (millis <= System.currentTimeMillis()) {
-            autoJsLog( "task out date run:" + timedTask);
+            autoJsLog("task out date run:" + timedTask);
             runTask(context, timedTask);
             return;
         }
@@ -138,7 +138,7 @@ public class AlarmManagerProvider extends BroadcastReceiver implements WorkProvi
         if (!force && timedTask.isScheduled()) {
             return;
         }
-        autoJsLog( "schedule task:" + timedTask);
+        autoJsLog("schedule task:" + timedTask);
         if (force) {
             cancel(timedTask);
         }
@@ -163,7 +163,7 @@ public class AlarmManagerProvider extends BroadcastReceiver implements WorkProvi
             // 目标时间修改为真实时间
             millis = SystemClock.elapsedRealtime() + gapMillis;
             type = AlarmManager.ELAPSED_REALTIME_WAKEUP;
-            autoJsLog( "less then 5 minutes, millis changed from " + oldMillis + " to " + millis);
+            autoJsLog("less then 5 minutes, millis changed from " + oldMillis + " to " + millis);
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             alarmManager.setExactAndAllowWhileIdle(type, millis, op);
@@ -176,10 +176,10 @@ public class AlarmManagerProvider extends BroadcastReceiver implements WorkProvi
 
 
     public void checkTasksRepeatedlyIfNeeded(Context context) {
-        autoJsLog( "checkTasksRepeatedlyIfNeeded count:" + TimedTaskManager.getInstance().countTasks());
+        autoJsLog("checkTasksRepeatedlyIfNeeded count:" + TimedTaskManager.getInstance().countTasks());
         if (TimedTaskManager.getInstance().countTasks() > 0) {
             // 设置周期性时间6分钟
-            setupNextRtcWakeup(context, System.currentTimeMillis() +  INTERVAL);
+            setupNextRtcWakeup(context, System.currentTimeMillis() + INTERVAL);
         }
     }
 

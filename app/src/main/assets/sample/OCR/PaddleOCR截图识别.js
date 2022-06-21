@@ -24,21 +24,22 @@ importClass(com.baidu.paddle.lite.ocr.Predictor)
 let useSlim = true
 // 创建检测器
 let predictor = new Predictor()
-// predictor.cpuThreadNum = 4 //可以自定义使用CPU的线程数
+// predictor.cpuThreadNum = 4 // 可以自定义使用CPU的线程数
+// predictor.checkModelLoaded = false // 可以自定义是否需要校验模型是否成功加载 默认开启 使用内置Base64图片进行校验 识别测试文本来校验模型是否加载成功
 // 初始化模型 首次运行时会比较耗时
 let loading = threads.disposable()
 // 建议在新线程中初始化模型
 threads.start(function () {
   loading.setAndNotify(predictor.init(context, useSlim))
   // loading.setAndNotify(predictor.init(context)) 为默认不使用精简版
-  // 内置默认 modelPath 为 models/ocr_v2_for_cpu，初始化自定义模型请写绝对路径否则无法获取到
+  // 内置默认 modelPath 为 models/ocr_v3_for_cpu，初始化自定义模型请写绝对路径否则无法获取到
   // 内置默认 labelPath 为 labels/ppocr_keys_v1.txt
   // let modelPath = files.path('./models/customize') // 指定自定义模型路径
   // let labelPath = files.path('./models/customize') // 指定自定义label路径
   // 使用自定义模型时det rec cls三个模型文件名称需要手动指定
-  // predictor.detModelFilename = 'ch_ppocr_mobile_v2.0_det_opt.nb'
-  // predictor.recModelFilename = 'ch_ppocr_mobile_v2.0_rec_opt.nb'
-  // predictor.clsModelFilename = 'ch_ppocr_mobile_v2.0_cls_opt.nb'
+  // predictor.detModelFilename = 'det_opt.nb'
+  // predictor.recModelFilename = 'rec_opt.nb'
+  // predictor.clsModelFilename = 'cls_opt.nb'
   // loading.setAndNotify(predictor.init(context, modelPath, labelPath))
 })
 let loadSuccess = loading.blockedGet()
@@ -145,8 +146,6 @@ events.on('exit', () => {
   window.canvas.removeAllListeners()
   // 回收图片
   img && img.recycle()
-  // 释放模型
-  predictor.releaseModel()
 })
 
 /**

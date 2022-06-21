@@ -22,12 +22,12 @@
 
 const std::string CHARACTER_TYPE = "ch";
 const int MAX_DICT_LENGTH = 6624;
-const std::vector<int> REC_IMAGE_SHAPE = {3, 32, 320};
+const std::vector<int> REC_IMAGE_SHAPE = {3, 48, 320};
 
 static cv::Mat crnn_resize_norm_img(cv::Mat img, float wh_ratio) {
   int imgC = REC_IMAGE_SHAPE[0];
-  int imgW = REC_IMAGE_SHAPE[2];
   int imgH = REC_IMAGE_SHAPE[1];
+  int imgW = REC_IMAGE_SHAPE[2];
 
   if (CHARACTER_TYPE == "ch")
     imgW = int(32 * wh_ratio);
@@ -64,12 +64,10 @@ static cv::Mat crnn_resize_norm_img(cv::Mat img, float wh_ratio) {
 
 cv::Mat crnn_resize_img(const cv::Mat &img, float wh_ratio) {
   int imgC = REC_IMAGE_SHAPE[0];
-  int imgW = REC_IMAGE_SHAPE[2];
   int imgH = REC_IMAGE_SHAPE[1];
+  int imgW = REC_IMAGE_SHAPE[2];
 
-  if (CHARACTER_TYPE == "ch") {
-    imgW = int(32 * wh_ratio);
-  }
+  imgW = int(imgH * wh_ratio);
 
   float ratio = float(img.cols) / float(img.rows);
   int resize_w = 0;
@@ -78,7 +76,11 @@ cv::Mat crnn_resize_img(const cv::Mat &img, float wh_ratio) {
   else
     resize_w = int(ceilf(imgH * ratio));
   cv::Mat resize_img;
-  cv::resize(img, resize_img, cv::Size(resize_w, imgH));
+  cv::resize(img, resize_img, cv::Size(resize_w, imgH), 0.f, 0.f,
+             cv::INTER_LINEAR);
+  cv::copyMakeBorder(resize_img, resize_img, 0, 0, 0,
+                     int(imgW - resize_img.cols), cv::BORDER_CONSTANT,
+                     {127, 127, 127});
   return resize_img;
 }
 
