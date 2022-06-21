@@ -1,5 +1,6 @@
 /build
 cache/
 OpenCV/
-PaddleLite/
+PaddleLiteArmv7/
+PaddleLiteArmv8/
 .cxx/

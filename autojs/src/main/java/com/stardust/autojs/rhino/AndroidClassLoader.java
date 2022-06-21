@@ -15,7 +15,6 @@ import org.apache.log4j.Logger;
 import org.mozilla.javascript.GeneratedClassLoader;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -26,7 +25,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.UUID;
 import java.util.WeakHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import androidx.annotation.RequiresApi;
 import dalvik.system.DexClassLoader;
@@ -37,13 +39,12 @@ import dalvik.system.DexClassLoader;
 
 public class AndroidClassLoader extends ClassLoader implements GeneratedClassLoader {
 
-
-    private static final String LOG_TAG = "AndroidClassLoader";
+    private static final Lock lock = new ReentrantLock();
     private final ClassLoader parent;
     private final Map<String, DexClassLoader> mDexClassLoaders = new LinkedHashMap<>();
     private final File mCacheDir;
     private final File mLibsDir;
-    private Logger logger = Logger.getLogger(AndroidClassLoader.class);
+    private final Logger logger = Logger.getLogger(AndroidClassLoader.class);
 
     private final WeakHashMap<DeleteOnFinalizeFile, String> weakDexFileMap = new WeakHashMap<>();
 
@@ -94,7 +95,7 @@ public class AndroidClassLoader extends ClassLoader implements GeneratedClassLoa
     }
 
     private File generateTempFile(String name, boolean create) throws IOException {
-        File file = new File(mCacheDir, name.hashCode() + "_" + System.currentTimeMillis() + ".jar");
+        File file = new File(mCacheDir, name.hashCode() + "_" + UUID.randomUUID() + ".jar");
         if (create) {
             if (!file.exists()) {
                 file.createNewFile();
@@ -174,32 +175,43 @@ public class AndroidClassLoader extends ClassLoader implements GeneratedClassLoa
     }
 
     private DexClassLoader dexJar(File classFile, File dexFile) throws IOException {
-        final Main.Arguments arguments = new Main.Arguments();
-        arguments.fileNames = new String[]{classFile.getPath()};
-        boolean isTmpDex = dexFile == null;
-        if (isTmpDex) {
-            dexFile = generateTempFile("dex-" + classFile.getPath(), true);
-        }
-        arguments.outName = dexFile.getPath();
-        arguments.jarOutput = true;
-        arguments.verbose = true;
-        Main.run(arguments);
-        logger.debug("dex file size: " + dexFile.length());
-        if (dexFile.length() == 0) {
-            // 出现了异常
-            logger.error("创建dex文件失败，class文件路径：" + classFile.getPath() + " 大小：" + classFile.length());
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                dumpClassfileIntoLog(classFile);
+        String id = UUID.randomUUID().toString();
+        logger.debug(id + ": 等待获取锁并生成dex, class file: " + classFile.getName());
+        lock.lock();
+        try {
+            logger.debug(id + ": 获取锁开始生成dex");
+            final Main.Arguments arguments = new Main.Arguments();
+            arguments.fileNames = new String[]{classFile.getPath()};
+            boolean isTmpDex = dexFile == null;
+            if (isTmpDex) {
+                dexFile = generateTempFile("dex-" + classFile.getPath(), true);
             }
+            arguments.outName = dexFile.getPath();
+            arguments.jarOutput = true;
+            arguments.verbose = true;
+            int resultCode = Main.run(arguments);
+            logger.debug(id + ": 生成dex完毕 resultCode: " + resultCode + ", dex file: " + dexFile.getName());
+            logger.debug("dex file size: " + dexFile.length());
+            if (dexFile.length() == 0) {
+                // 出现了异常
+                logger.error("创建dex文件失败，class文件路径：" + classFile.getPath() + " 大小：" + classFile.length());
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    dumpClassfileIntoLog(classFile);
+                }
+            }
+            DexClassLoader loader = loadDex(dexFile);
+            if (isTmpDex) {
+                logger.debug("delete tmpFile on finalize:" + dexFile.getName());
+                // 当弱引用失去引用时 删除File对象
+                weakDexFileMap.put(new DeleteOnFinalizeFile(dexFile), dexFile.getName());
+                logger.debug("current weakMap size:" + weakDexFileMap.size());
+            }
+            logger.debug(id + ": dexJar完成");
+            return loader;
+        } finally {
+            logger.debug(id + ": 释放锁");
+            lock.unlock();
         }
-        DexClassLoader loader = loadDex(dexFile);
-        if (isTmpDex) {
-            logger.debug("delete tmpFile on finalize:" + dexFile.getName());
-            // 当弱引用失去引用时 删除File对象
-            weakDexFileMap.put(new DeleteOnFinalizeFile(dexFile), dexFile.getName());
-            logger.debug("current weakMap size:" + weakDexFileMap.size());
-        }
-        return loader;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -251,7 +263,6 @@ public class AndroidClassLoader extends ClassLoader implements GeneratedClassLoa
                     ListIterator<DexClassLoader> reverseIterator = new ArrayList<>(mDexClassLoaders.values()).listIterator(mDexClassLoaders.size());
                     while (reverseIterator.hasPrevious()) {
                         DexClassLoader classLoader = reverseIterator.previous();
-//                    Log.d(LOG_TAG, "try to load class: " + name + " class loader info: " + classLoader.toString());
                         try {
                             loadedClass = classLoader.loadClass(name);
                         } catch (Exception e) {

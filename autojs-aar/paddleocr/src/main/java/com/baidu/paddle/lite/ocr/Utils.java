@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.os.Environment;
+import android.util.Log;
 
 import java.io.*;
 
@@ -53,6 +54,7 @@ public class Utils {
                 if (new File(srcSubPath).isDirectory()) {
                     copyDirectoryFromAssets(appCtx, srcSubPath, dstSubPath);
                 } else {
+                    Log.d(TAG, "复制资源文件: " + srcSubPath + " => " + dstSubPath);
                     copyFileFromAssets(appCtx, srcSubPath, dstSubPath);
                 }
             }
@@ -62,14 +64,31 @@ public class Utils {
     }
 
     public static void copyDirectoryFromAssetsIfNeeded(Context appCtx, String srcDir, String dstDir) {
-        if (dstDir.isEmpty()) {
+        if (srcDir.isEmpty() || dstDir.isEmpty()) {
             return;
         }
-        if (new File(dstDir).exists()) {
-            return;
+        try {
+            if (!new File(dstDir).exists()) {
+                new File(dstDir).mkdirs();
+            }
+            for (String fileName : appCtx.getAssets().list(srcDir)) {
+                String srcSubPath = srcDir + File.separator + fileName;
+                String dstSubPath = dstDir + File.separator + fileName;
+                if (new File(srcSubPath).isDirectory()) {
+                    copyDirectoryFromAssetsIfNeeded(appCtx, srcSubPath, dstSubPath);
+                } else {
+                    if (new File(dstSubPath).exists()) {
+                        return;
+                    }
+                    Log.d(TAG, "复制资源文件: " + srcSubPath + " => " + dstSubPath);
+                    copyFileFromAssets(appCtx, srcSubPath, dstSubPath);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        copyDirectoryFromAssets(appCtx, srcDir, dstDir);
     }
+
 
     public static float[] parseFloatsFromString(String string, String delimiter) {
         String[] pieces = string.trim().toLowerCase().split(delimiter);
