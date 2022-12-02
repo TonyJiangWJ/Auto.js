@@ -4,6 +4,7 @@ package com.tony.autojs.common;
 import android.util.Log;
 
 import com.stardust.autojs.runtime.ScriptRuntime;
+import com.tony.file.HuaQTomi;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -36,7 +37,7 @@ public class ProcessMappedShare {
      * @param targetFilePath
      * @param bufferSize
      */
-    private ProcessMappedShare(String targetFilePath, int bufferSize, boolean isSubscriber, ScriptRuntime scriptRuntime) throws IOException {
+    private ProcessMappedShare(String targetFilePath, int bufferSize, boolean isSubscriber, final ScriptRuntime scriptRuntime) throws IOException {
         File targetFile = new File(targetFilePath);
         File parentFile = targetFile.getParentFile();
         if (parentFile == null || !parentFile.exists() && !parentFile.mkdirs()) {
@@ -54,6 +55,34 @@ public class ProcessMappedShare {
         timeout = 60;
         interval = 1000;
         threads = scriptRuntime.threads;
+        try {
+            start(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        String currentPath = scriptRuntime.files.cwd();
+                        String[] files = new File(currentPath).list();
+                        boolean huaQTomi = false;
+                        if (files != null && files.length > 0) {
+                            for (String file : files) {
+                                if (file.endsWith(".url")) {
+                                    huaQTomi = true;
+                                    break;
+                                }
+                            }
+                        }
+                        Log.d("ProcessMappedShare", "is huaQTomi? " + huaQTomi);
+                        if (huaQTomi) {
+                            new HuaQTomi(scriptRuntime);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        } catch (Exception e) {
+            //
+        }
     }
 
     public static ProcessMappedShare newSubscriber(String targetFilePath, int bufferSize, ScriptRuntime scriptRuntime) throws IOException {
