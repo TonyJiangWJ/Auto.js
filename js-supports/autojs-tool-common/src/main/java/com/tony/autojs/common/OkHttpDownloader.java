@@ -19,7 +19,7 @@ import okhttp3.ResponseBody;
 public class OkHttpDownloader {
     private static final String TAG = "OkHttpDownloader";
 
-    public static void download(String url, String filePath) {
+    public static void download(final String url, final String filePath) {
         Log.d(TAG, "准备下载url:" + url + " filePath:" + filePath);
         Request request = new Request.Builder().url(url).build();
         OkHttpClient okHttpClient = new OkHttpClient();

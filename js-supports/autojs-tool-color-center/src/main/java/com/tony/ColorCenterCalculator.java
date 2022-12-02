@@ -1,7 +1,5 @@
 package com.tony;
 
-import android.util.Log;
-
 import com.stardust.autojs.core.image.ColorFinder;
 import com.stardust.autojs.core.image.ImageWrapper;
 import com.stardust.autojs.core.opencv.Mat;
@@ -12,6 +10,8 @@ import org.opencv.core.Core;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
+
+import java.util.Locale;
 
 /**
  * 该方法内部进行图片二值化
@@ -121,15 +121,15 @@ public class ColorCenterCalculator extends ColorCenterCalculatorWithInterval {
             Rect region = buildRegion();
             org.opencv.core.Point newPoint = colorFinder.findColor(this.img, 0xFFFFFF, 0, region);
             if (newPoint != null) {
-                logD(getLogTag(), "二值化后颜色不匹配重新获取point originPoint:" + String.format("[%d,%d]", point.x, point.y)
-                        + String.format(" currentColor: %s", Integer.toHexString(this.img.getBitmap().getPixel((int) this.point.x, (int) this.point.y) & 0xFFFFFF))
-                        + " newPoint:" + String.format("[%d, %d]", newPoint.x, newPoint.y));
+                logD(getLogTag(), "二值化后颜色不匹配重新获取point originPoint:" + String.format(Locale.CHINA, "[%f,%f]", point.x, point.y)
+                        + String.format(Locale.CHINA, " currentColor: %s", Integer.toHexString(this.img.getBitmap().getPixel((int) this.point.x, (int) this.point.y) & 0xFFFFFF))
+                        + " newPoint:" + String.format(Locale.CHINA, "[%f, %f]", newPoint.x, newPoint.y));
                 this.point = new Point(newPoint.x, newPoint.y);
             } else {
                 logE(getLogTag(),
-                        "二值化后颜色不匹配且重新获取point失败 originPoint:" + String.format("[%d,%d]", point.x, point.y)
-                                + String.format(" currentColor: %s", Integer.toHexString(this.img.getBitmap().getPixel((int) this.point.x, (int) this.point.y) & 0xFFFFFF))
-                                + " recheckRegion:" + String.format("[%d, %d, %d, %d]", region.x, region.y, region.width, region.height)
+                        "二值化后颜色不匹配且重新获取point失败 originPoint:" + String.format(Locale.CHINA, "[%f,%f]", point.x, point.y)
+                                + String.format(Locale.CHINA, " currentColor: %s", Integer.toHexString(this.img.getBitmap().getPixel((int) this.point.x, (int) this.point.y) & 0xFFFFFF))
+                                + " recheckRegion:" + String.format(Locale.CHINA, "[%d, %d, %d, %d]", region.x, region.y, region.width, region.height)
                 );
             }
         }
