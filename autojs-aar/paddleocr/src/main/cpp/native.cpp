@@ -47,7 +47,7 @@ str_to_cpu_mode(const std::string &cpu_mode) {
   std::string upper_key;
   std::transform(cpu_mode.cbegin(), cpu_mode.cend(), upper_key.begin(),
                  ::toupper);
-  auto index = cpu_mode_map.find(upper_key);
+  auto index = cpu_mode_map.find(upper_key.c_str());
   if (index == cpu_mode_map.end()) {
     // 可能因为大小写转换后找不到 直接通过入参查找
     index = cpu_mode_map.find(cpu_mode);
@@ -74,7 +74,7 @@ Java_com_baidu_paddle_lite_ocr_OCRPredictorNative_forward(
   }
 
   cv::Mat origin = bitmap_to_cv_mat(env, original_image);
-  if (origin.size == 0) {
+  if (origin.size == nullptr) {
     LOGE("origin bitmap cannot convert to CV Mat");
     return cpp_array_to_jfloatarray(env, nullptr, 0);
   }

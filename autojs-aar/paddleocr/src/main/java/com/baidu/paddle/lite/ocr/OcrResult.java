@@ -3,10 +3,14 @@ package com.baidu.paddle.lite.ocr;
 import android.graphics.Point;
 import android.graphics.Rect;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class OcrResult implements Comparable<OcrResult> {
     private String label;
     private float confidence;
     private Rect bounds;
+    private List<OcrResult> elements = new ArrayList<>();
 
     public OcrResult() {
     }
@@ -68,6 +72,14 @@ public class OcrResult implements Comparable<OcrResult> {
 
     public String getWords() {
         return label.trim().replace("\r", "");
+    }
+
+    public List<OcrResult> getElements() {
+        return this.elements;
+    }
+
+    public void addElements(OcrResult element) {
+        this.elements.add(element);
     }
 
     @Override

@@ -17,20 +17,70 @@ public class OCR {
 
     private final Predictor mPredictor = new Predictor();
 
+    private boolean useCustomModel;
+    private boolean useSpecificModels;
+    private String customModelPath;
+    private String customLabelPath;
+    private String clsFileName;
+    private String detFileName;
+    private String recFileName;
+    private float scoreThreshold = 0.1f;
+
 
     public synchronized boolean init(boolean useSlim) {
-        if (!mPredictor.isLoaded || useSlim != mPredictor.isUseSlim()) {
+        if (!mPredictor.isLoaded || !useCustomModel && useSlim != mPredictor.isUseSlim()) {
+            if (useSpecificModels) {
+                mPredictor.clsModelFilename = clsFileName;
+                mPredictor.recModelFilename = recFileName;
+                mPredictor.detModelFilename = detFileName;
+            }
+            mPredictor.scoreThreshold = scoreThreshold;
             if (Looper.getMainLooper() == Looper.myLooper()) {
                 VolatileDispose<Boolean> result = new VolatileDispose<>();
                 new Thread(() -> {
-                    result.setAndNotify(mPredictor.init(GlobalAppContext.get(), useSlim));
+                    if (useCustomModel) {
+                        result.setAndNotify(mPredictor.init(GlobalAppContext.get(), customModelPath, customLabelPath));
+                    } else {
+                        result.setAndNotify(mPredictor.init(GlobalAppContext.get(), useSlim));
+                    }
                 }).start();
                 return result.blockedGet();
             } else {
-                return mPredictor.init(GlobalAppContext.get(), useSlim);
+                if (useCustomModel) {
+                    return mPredictor.init(GlobalAppContext.get(), customModelPath, customLabelPath);
+                } else {
+                    return mPredictor.init(GlobalAppContext.get(), useSlim);
+                }
             }
         }
         return mPredictor.isLoaded;
+    }
+
+    public boolean initWithCustomModel(String modelPath, String labelPath) {
+        mPredictor.releaseModel();
+        useCustomModel = true;
+        customModelPath = modelPath;
+        customLabelPath = labelPath;
+        mPredictor.checkModelLoaded = false;
+        return this.init(false);
+    }
+
+    public boolean initWithSpecificModels(String modelPath, String labelPath, String detFileName, String recFileName, String clsFileName) {
+        useSpecificModels = true;
+        mPredictor.releaseModel();
+        useCustomModel = true;
+        customModelPath = modelPath;
+        customLabelPath = labelPath;
+        this.detFileName = detFileName;
+        this.recFileName = recFileName;
+        this.clsFileName = clsFileName;
+        return this.init(false);
+    }
+
+    public void resetDefaultModel() {
+        useCustomModel = false;
+        useSpecificModels = false;
+        mPredictor.releaseModel();
     }
 
     public void release() {
@@ -50,9 +100,7 @@ public class OCR {
             mPredictor.cpuThreadNum = cpuThreadNum;
         }
         init(useSlim);
-        List<OcrResult> results = mPredictor.runOcr(bitmap);
-        Collections.sort(results);
-        return results;
+        return mPredictor.runOcr(bitmap);
     }
 
     public List<OcrResult> detect(ImageWrapper image, int cpuThreadNum) {
@@ -82,6 +130,13 @@ public class OCR {
         return recognizeText(image, 4, true);
     }
 
+    public float getScoreThreshold() {
+        return scoreThreshold;
+    }
+
+    public void setScoreThreshold(float scoreThreshold) {
+        this.scoreThreshold = scoreThreshold;
+    }
 }
 
 

@@ -13,10 +13,11 @@ object BFS : SearchAlgorithm {
         queue.add(root)
         while (!queue.isEmpty()) {
             val top = queue.poll()
+            top?:continue
             val isTarget = filter.filter(top)
             if (isTarget) {
                 result.add(top)
-                if (result.size > limit) {
+                if (result.size >= limit) {
                     return result
                 }
             }

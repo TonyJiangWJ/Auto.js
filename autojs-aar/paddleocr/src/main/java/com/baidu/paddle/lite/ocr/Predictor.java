@@ -30,7 +30,7 @@ public class Predictor {
     // Only for object detection
     protected Vector<String> wordLabels = new Vector<>();
     protected int detLongSize = 960;
-    protected float scoreThreshold = 0.1f;
+    public float scoreThreshold = 0.1f;
     protected Bitmap inputImage = null;
     protected float preprocessTime = 0;
     /**
@@ -68,15 +68,6 @@ public class Predictor {
     private int retryTime = 1;
 
     public Predictor() {
-    }
-
-    public boolean init(Context appCtx, String modelPath, String labelPath, int cpuThreadNum, String cpuPowerMode) {
-        isLoaded = loadModel(appCtx, modelPath, cpuThreadNum, cpuPowerMode);
-        if (!isLoaded) {
-            return false;
-        }
-        isLoaded = loadLabel(appCtx, labelPath);
-        return isLoaded;
     }
 
     public boolean init(Context appCtx) {
@@ -134,6 +125,14 @@ public class Predictor {
         return result;
     }
 
+    public boolean init(Context appCtx, String modelPath, String labelPath, int cpuThreadNum, String cpuPowerMode) {
+        isLoaded = loadModel(appCtx, modelPath, cpuThreadNum, cpuPowerMode);
+        if (!isLoaded) {
+            return false;
+        }
+        isLoaded = loadLabel(appCtx, labelPath);
+        return isLoaded;
+    }
 
     public boolean init(Context appCtx, String modelPath, String labelPath, int cpuThreadNum, String cpuPowerMode,
                         int detLongSize, float scoreThreshold) {
@@ -250,10 +249,11 @@ public class Predictor {
         List<OcrResult> ocrResults = new ArrayList<>();
         for (OcrResultModel resultModel : results) {
             Log.d(TAG, "recognize: " + resultModel.toString());
-            if (resultModel.getConfidence() > 0.1) {
+            if (resultModel.getConfidence() >= scoreThreshold) {
                 ocrResults.add(new OcrResult(resultModel));
             }
         }
+        Collections.sort(ocrResults);
         return ocrResults;
     }
 
