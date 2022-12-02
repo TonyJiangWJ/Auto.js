@@ -3,6 +3,7 @@ package org.autojs.autojs.model.script;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
+import android.os.Environment;
 import android.text.TextUtils;
 import android.widget.Toast;
 
@@ -51,8 +52,10 @@ public class PathChecker {
 
     private static boolean hasStorageReadPermission(Activity activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
-                    activity.checkSelfPermission(READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                return Environment.isExternalStorageManager();
+            }
+            return activity.checkSelfPermission(READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
         }
         return true;
     }

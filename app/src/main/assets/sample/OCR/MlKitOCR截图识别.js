@@ -1,7 +1,6 @@
 // 杀死当前同名脚本 see AutoScriptBase/lib/killMyDuplicator
 (()=>{let g=engines.myEngine();var e=engines.all(),n=e.length;let r=g.getSource()+"";1<n&&e.forEach(e=>{var n=e.getSource()+"";g.id!==e.id&&n==r&&e.forceStop()})})();
 
-
 if (!requestScreenCapture()) {
   toastLog('请求截图权限失败')
   exit()
@@ -9,40 +8,12 @@ if (!requestScreenCapture()) {
 
 sleep(1000)
 
-importClass(com.baidu.paddle.lite.ocr.Predictor)
-
-// 指定是否用精简版模型 速度较快
-let useSlim = true
-// 创建检测器
-let predictor = new Predictor()
-// predictor.cpuThreadNum = 4 // 可以自定义使用CPU的线程数
-// predictor.checkModelLoaded = false // 可以自定义是否需要校验模型是否成功加载 默认开启 使用内置Base64图片进行校验 识别测试文本来校验模型是否加载成功
-// 初始化模型 首次运行时会比较耗时
-let loading = threads.disposable()
-// 建议在新线程中初始化模型
-threads.start(function () {
-  loading.setAndNotify(predictor.init(context, useSlim))
-  // loading.setAndNotify(predictor.init(context)) 为默认不使用精简版
-  // 内置默认 modelPath 为 models/ocr_v3_for_cpu，初始化自定义模型请写绝对路径否则无法获取到
-  // 内置默认 labelPath 为 labels/ppocr_keys_v1.txt
-  // let modelPath = files.path('./models/customize') // 指定自定义模型路径
-  // let labelPath = files.path('./models/customize') // 指定自定义label路径
-  // 使用自定义模型时det rec cls三个模型文件名称需要手动指定
-  // predictor.detModelFilename = 'det_opt.nb'
-  // predictor.recModelFilename = 'rec_opt.nb'
-  // predictor.clsModelFilename = 'cls_opt.nb'
-  // loading.setAndNotify(predictor.init(context, modelPath, labelPath))
-})
-let loadSuccess = loading.blockedGet()
-if (!loadSuccess) {
-  toastLog('初始化ocr失败')
-  exit()
-}
 // 识别结果和截图信息
 let result = []
 let img = null
 let running = true
 let capturing = true
+let displayByLine = true
 
 /**
  * 截图并识别OCR文本信息
@@ -55,7 +26,7 @@ function captureAndOcr() {
     toastLog('截图失败')
   }
   let start = new Date()
-  result = predictor.runOcr(img.getBitmap())
+  result = $mlKitOcr.detect(img)
   toastLog('耗时' + (new Date() - start) + 'ms')
   capturing = false
 }
@@ -81,11 +52,12 @@ ui.post(() => {
 let clickButtonWindow = floaty.rawWindow(
   <vertical>
     <button id="captureAndOcr" text="截图识别" />
+    <button id="displayToggle" text="按元素显示" />
     <button id="closeBtn" text="退出" />
   </vertical>
 );
 ui.run(function () {
-  clickButtonWindow.setPosition(device.width / 2 - ~~(clickButtonWindow.getWidth() / 2), device.height * 0.65)
+  clickButtonWindow.setPosition(device.width / 2 - ~~(clickButtonWindow.getWidth() / 2), device.height * 0.75)
 })
 
 // 点击识别
@@ -97,9 +69,16 @@ clickButtonWindow.captureAndOcr.click(function () {
   setTimeout(() => {
     captureAndOcr()
     ui.run(function () {
-      clickButtonWindow.setPosition(device.width / 2 - ~~(clickButtonWindow.getWidth() / 2), device.height * 0.65)
+      clickButtonWindow.setPosition(device.width / 2 - ~~(clickButtonWindow.getWidth() / 2), device.height * 0.75)
     })
   }, 500)
+})
+// 切换显示模式
+clickButtonWindow.displayToggle.click(function () {
+  displayByLine = !displayByLine
+  ui.run(function () {
+    clickButtonWindow.displayToggle.setText(displayByLine ? '按元素显示' : '按行显示')
+  })
 })
 
 // 点击关闭
@@ -124,7 +103,14 @@ window.canvas.on('draw', function (canvas) {
   if (result && result.length > 0) {
     for (let i = 0; i < result.length; i++) {
       let ocrResult = result[i]
-      drawRectAndText(ocrResult.label, ocrResult.bounds, '#00ff00', canvas, paint)
+      if (displayByLine) {
+        drawRectAndText(ocrResult.label, ocrResult.bounds, '#00ff00', canvas, paint)
+      } else {
+        for (let e = 0; e < ocrResult.elements.length; e++) {
+          let element = ocrResult.elements[e]
+          drawRectAndText(element.label, element.bounds, '#00ff00', canvas, paint)
+        }
+      }
     }
   }
 })

@@ -32,6 +32,7 @@ import com.stardust.autojs.runtime.api.Files;
 import com.stardust.autojs.runtime.api.Floaty;
 import com.stardust.autojs.runtime.api.Images;
 import com.stardust.autojs.runtime.api.Media;
+import com.stardust.autojs.runtime.api.MlKitOCR;
 import com.stardust.autojs.runtime.api.OCR;
 import com.stardust.autojs.runtime.api.Plugins;
 import com.stardust.autojs.runtime.api.Sensors;
@@ -203,6 +204,9 @@ public class ScriptRuntime {
     public OCR ocr;
 
     @ScriptVariable
+    public MlKitOCR mlKitOCR;
+
+    @ScriptVariable
     public final Speech speech;
 
     private Images images;
@@ -238,6 +242,7 @@ public class ScriptRuntime {
         plugins = new Plugins(context, this);
         zips = new SevenZip();
         ocr = new OCR();
+        mlKitOCR = new MlKitOCR();
         speech = new Speech(context);
     }
 
@@ -384,11 +389,27 @@ public class ScriptRuntime {
         }
     }
 
+    public void loadLibrary(String libraryName) {
+        try {
+            System.loadLibrary(libraryName);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public String getLibraryPath() {
+        return ((AndroidClassLoader) ContextFactory.getGlobal().getApplicationClassLoader()).getLibsDir();
+    }
+
     /**
      * 移除所有已加载的外置jar或者dex
      */
     public void unloadAllDex() {
         ((AndroidClassLoader) ContextFactory.getGlobal().getApplicationClassLoader()).unloadAllDex();
+    }
+
+    public boolean isBoom() {
+        return ((AndroidClassLoader) ContextFactory.getGlobal().getApplicationClassLoader()).isBoom();
     }
 
     public void exit() {
@@ -457,6 +478,7 @@ public class ScriptRuntime {
         ignoresException(timers::recycle);
         ignoresException(ui::recycle);
         ignoresException(ocr::release);
+        ignoresException(mlKitOCR::release);
         ignoresException(speech::destroy);
         ignoresException(() -> mTopLevelScope.get().markReleased(engines.myEngine().getSource().toString()));
     }

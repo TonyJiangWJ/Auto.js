@@ -1,7 +1,6 @@
 importClass(com.baidu.paddle.lite.ocr.Predictor)
 
 console.show()
-let path = 'test.jpg'
 // 指定是否用精简版模型 速度较快
 let useSlim = false
 // 创建检测器

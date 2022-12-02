@@ -90,6 +90,10 @@ public class TimedTask extends BaseModel {
         this.executed = executed;
     }
 
+    public boolean isExecuted() {
+        return executed;
+    }
+
     public long getNextTime() {
         if (isDisposable()) {
             targetExecuteMillis = mMillis;

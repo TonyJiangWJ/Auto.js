@@ -77,5 +77,6 @@ dependencies {
     api project(path: ':common')
     api project(path: ':automator')
     implementation 'com.rmtheis:tess-two:9.1.0'
+    implementation 'com.google.mlkit:text-recognition-chinese:16.0.0-beta6'
 }
 

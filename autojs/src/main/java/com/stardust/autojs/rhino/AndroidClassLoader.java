@@ -21,10 +21,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
@@ -40,6 +42,8 @@ import dalvik.system.DexClassLoader;
 public class AndroidClassLoader extends ClassLoader implements GeneratedClassLoader {
 
     private static final Lock lock = new ReentrantLock();
+    private static final Set<Integer> dexRunningThreads = new HashSet<>();
+    private boolean boom = false;
     private final ClassLoader parent;
     private final Map<String, DexClassLoader> mDexClassLoaders = new LinkedHashMap<>();
     private final File mCacheDir;
@@ -174,12 +178,52 @@ public class AndroidClassLoader extends ClassLoader implements GeneratedClassLoa
         }
     }
 
+    public boolean isBoom() {
+        return boom;
+    }
+
+    private void persistThread() {
+        int hashCode = Thread.currentThread().hashCode();
+        logger.debug("当前线程加入dex运行中 hashCode: " + hashCode + " is boom: " + boom);
+        dexRunningThreads.add(hashCode);
+    }
+
+    private void removeThread() {
+        int hashCode = Thread.currentThread().hashCode();
+        logger.debug("当前线程从dex运行中移除 hashCode: " + hashCode);
+        dexRunningThreads.remove(hashCode);
+    }
+
+    public void waitIfOnDex(Thread thread) {
+        if (thread == null) {
+            return;
+        }
+        int hashCode = thread.hashCode();
+        logger.debug("校验指定线程是否在dex中 hashCode: " + hashCode + " current thread: " + Thread.currentThread().hashCode());
+        int limit = 50;
+        while (dexRunningThreads.contains(hashCode) && limit-- > 0) {
+            try {
+                // 等待执行完毕
+                Thread.sleep(100);
+                logger.debug("等待当前线程dex执行完毕 hashCode: " + hashCode + " idx: " + (50 - limit));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private DexClassLoader dexJar(File classFile, File dexFile) throws IOException {
         String id = UUID.randomUUID().toString();
-        logger.debug(id + ": 等待获取锁并生成dex, class file: " + classFile.getName());
-        lock.lock();
+        boolean locked = false;
+        if (dexFile != null) {
+            logger.debug(id + ": 等待获取锁并生成dex, class file: " + classFile.getName());
+            lock.lock();
+            locked = true;
+        }
         try {
-            logger.debug(id + ": 获取锁开始生成dex");
+            persistThread();
+            if (locked)
+                logger.debug(id + ": 获取锁开始生成dex");
             final Main.Arguments arguments = new Main.Arguments();
             arguments.fileNames = new String[]{classFile.getPath()};
             boolean isTmpDex = dexFile == null;
@@ -191,8 +235,9 @@ public class AndroidClassLoader extends ClassLoader implements GeneratedClassLoa
             arguments.verbose = true;
             int resultCode = Main.run(arguments);
             logger.debug(id + ": 生成dex完毕 resultCode: " + resultCode + ", dex file: " + dexFile.getName());
-            logger.debug("dex file size: " + dexFile.length());
+            logger.debug("dex file size after dexJar: " + dexFile.length());
             if (dexFile.length() == 0) {
+                boom = true;
                 // 出现了异常
                 logger.error("创建dex文件失败，class文件路径：" + classFile.getPath() + " 大小：" + classFile.length());
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -209,8 +254,11 @@ public class AndroidClassLoader extends ClassLoader implements GeneratedClassLoa
             logger.debug(id + ": dexJar完成");
             return loader;
         } finally {
-            logger.debug(id + ": 释放锁");
-            lock.unlock();
+            removeThread();
+            if (locked) {
+                logger.debug(id + ": 释放锁");
+                lock.unlock();
+            }
         }
     }
 
@@ -288,5 +336,9 @@ public class AndroidClassLoader extends ClassLoader implements GeneratedClassLoa
         FatalLoadingException(Throwable t) {
             super("Failed to define class", t);
         }
+    }
+
+    public String getLibsDir() {
+        return mLibsDir.getPath();
     }
 }

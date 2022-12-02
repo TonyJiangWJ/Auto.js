@@ -8,6 +8,8 @@ import android.text.TextUtils;
 import com.stardust.app.GlobalAppContext;
 
 import org.autojs.autojs.App;
+
+import org.autojs.autojs.autojs.AutoJs;
 import org.autojs.autojs.storage.database.IntentTaskDatabase;
 import org.autojs.autojs.storage.database.ModelChange;
 import org.autojs.autojs.storage.database.TimedTaskDatabase;
@@ -49,6 +51,7 @@ public class TimedTaskManager {
 
     @SuppressLint("CheckResult")
     public void notifyTaskFinished(long id) {
+        AutoJs.getInstance().debugInfo("标记任务已完成 id：" + id);
         TimedTask task = getTimedTask(id);
         if (task == null)
             return;

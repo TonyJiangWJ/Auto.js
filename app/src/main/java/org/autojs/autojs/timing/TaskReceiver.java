@@ -9,6 +9,8 @@ import android.util.Log;
 import org.autojs.autojs.autojs.AutoJs;
 import org.autojs.autojs.external.ScriptIntents;
 
+import java.util.WeakHashMap;
+
 /**
  * Created by Stardust on 2017/11/27.
  */
@@ -26,10 +28,15 @@ public class TaskReceiver extends BroadcastReceiver {
                 + ", path=" + intent.getStringExtra(ScriptIntents.EXTRA_KEY_PATH)
                 + "]");
         AutoJs.getInstance().debugInfo("receive intent:" + intent.getAction());
-        ScriptIntents.handleIntent(context, intent);
         long id = intent.getLongExtra(EXTRA_TASK_ID, -1);
         if (id >= 0) {
+            TimedTask task = TimedTaskManager.getInstance().getTimedTask(id);
+            if (task == null || task.isExecuted()) {
+                AutoJs.getInstance().debugInfo("task[" + id + "] is executed");
+                return;
+            }
             TimedTaskManager.getInstance().notifyTaskFinished(id);
         }
+        ScriptIntents.handleIntent(context, intent);
     }
 }

@@ -19,6 +19,8 @@ import org.autojs.autojs.external.ScriptIntents;
 import org.autojs.autojs.timing.TimedTask;
 import org.autojs.autojs.timing.TimedTaskManager;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -63,7 +65,7 @@ public class AlarmManagerProvider extends BroadcastReceiver implements WorkProvi
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        autoJsLog("onReceiveRtcWakeUp");
+        autoJsLog("onReceiveRtcWakeUp intent: " + intent);
         checkTasks(context, false);
         setupNextRtcWakeup(context, System.currentTimeMillis() + INTERVAL);
     }
@@ -124,7 +126,12 @@ public class AlarmManagerProvider extends BroadcastReceiver implements WorkProvi
         long millis = timedTask.getNextTime();
         if (millis <= System.currentTimeMillis()) {
             autoJsLog("task out date run:" + timedTask);
-            runTask(context, timedTask);
+            TimedTask dbTask = TimedTaskManager.getInstance().getTimedTask(timedTask.getId());
+            if (dbTask != null && !dbTask.isExecuted()) {
+                runTask(context, timedTask);
+            } else {
+                autoJsLog("task is executed skip id: " + timedTask.getId());
+            }
             return;
         }
         if (!force && timedTask.isScheduled() || millis - System.currentTimeMillis() > SCHEDULE_TASK_MIN_TIME) {
@@ -138,7 +145,6 @@ public class AlarmManagerProvider extends BroadcastReceiver implements WorkProvi
         if (!force && timedTask.isScheduled()) {
             return;
         }
-        autoJsLog("schedule task:" + timedTask);
         if (force) {
             cancel(timedTask);
         }
@@ -147,10 +153,10 @@ public class AlarmManagerProvider extends BroadcastReceiver implements WorkProvi
 
 
     public void runTask(Context context, TimedTask task) {
-        Log.d(LOG_TAG, "run task: task = " + task);
+        autoJsLog("run task: task = " + task);
         Intent intent = task.createIntent();
-        ScriptIntents.handleIntent(context, intent);
         TimedTaskManager.getInstance().notifyTaskFinished(task.getId());
+        ScriptIntents.handleIntent(context, intent);
         // 如果队列中有任务正在等待，直接取消
         cancel(task);
     }
@@ -178,12 +184,39 @@ public class AlarmManagerProvider extends BroadcastReceiver implements WorkProvi
     public void checkTasksRepeatedlyIfNeeded(Context context) {
         autoJsLog("checkTasksRepeatedlyIfNeeded count:" + TimedTaskManager.getInstance().countTasks());
         if (TimedTaskManager.getInstance().countTasks() > 0) {
-            // 设置周期性时间6分钟
+            // 设置周期性时间15分钟
             setupNextRtcWakeup(context, System.currentTimeMillis() + INTERVAL);
         }
     }
 
     private void setupNextRtcWakeup(Context context, long millis) {
+        // 检查最近一次的任务
+        List<TimedTask> timedTaskList = TimedTaskManager.getInstance().getAllTasksAsList();
+        if (timedTaskList != null && timedTaskList.size() > 0) {
+            Collections.sort(timedTaskList, (o1, o2) -> Long.compare(o1.getNextTime(), o2.getNextTime()));
+            long current = System.currentTimeMillis();
+            for (TimedTask task : timedTaskList) {
+                long executeMills = task.getNextTime();
+                if (task.isExecuted() || executeMills < current) {
+                    continue;
+                }
+                if (executeMills > millis) {
+                    // 15+5(锁屏下可能延迟5分钟)分钟内的RTC不准 如果下一个任务执行时间在下一周期的间隔小于15+5分钟 直接加上间隔时间
+                    long executeGap = executeMills - millis;
+                    if (executeGap < INTERVAL + MIN_INTERVAL_GAP) {
+                        autoJsLog("task [" + task + "] target execute time gap: " + executeGap
+                                + " is less then rtc+20m millis:" + millis);
+                        millis += executeGap;
+                        break;
+                    }
+                } else {
+                    // 执行时间小于RTC间隔 直接修改为目标时间
+                    autoJsLog("task [" + task + "] target execute time is less then rtc millis:" + millis);
+                    millis = executeMills;
+                    break;
+                }
+            }
+        }
         autoJsLog("setupNextRtcWakeup: at " + millis);
         if (millis <= 0) {
             throw new IllegalArgumentException("millis <= 0: " + millis);
@@ -212,7 +245,7 @@ public class AlarmManagerProvider extends BroadcastReceiver implements WorkProvi
             sCheckTasksPendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE_CHECK_TASK_REPEATEDLY,
                     new Intent(ACTION_CHECK_TASK)
                             .setComponent(new ComponentName(BuildConfig.APPLICATION_ID,
-                                    "org.autojs.autojs.timing.work.AlarmManagerProvider")),
+                                    AlarmManagerProvider.class.getName())),
                     flags);
         }
         return sCheckTasksPendingIntent;

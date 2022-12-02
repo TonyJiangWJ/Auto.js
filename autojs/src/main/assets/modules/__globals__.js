@@ -142,6 +142,5 @@ module.exports = function(runtime, global){
     }
 
     global.$zips = Object.create(runtime.zips);
-    global.$ocr = Object.create(runtime.ocr);
 
 }

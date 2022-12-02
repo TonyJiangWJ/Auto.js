@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.ShortcutInfo;
 import android.graphics.drawable.Icon;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -41,6 +42,7 @@ public class ShortcutManager {
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void addPinnedShortcut(CharSequence label, String id, Icon icon, Intent intent) {
         if (!mShortcutManager.isRequestPinShortcutSupported()) {
+            Log.d("ShortcutManager", "pin shortcut is not supported");
             return;
         }
         ShortcutInfo shortcut = buildShortcutInfo(label, id, icon, intent);

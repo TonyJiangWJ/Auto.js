@@ -6,9 +6,11 @@ import android.os.Handler;
 import android.os.Looper;
 
 import com.stardust.autojs.core.looper.LooperHelper;
+import com.stardust.autojs.rhino.AndroidClassLoader;
 import com.stardust.autojs.script.JavaScriptSource;
 import com.stardust.autojs.script.ScriptSource;
 
+import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.ContinuationPending;
 
 /**
@@ -73,6 +75,8 @@ public class LoopBasedJavaScriptEngine extends RhinoJavaScriptEngine {
 
     @Override
     public void forceStop() {
+        // check classLoader
+        ((AndroidClassLoader) ContextFactory.getGlobal().getApplicationClassLoader()).waitIfOnDex(getThread());
         LooperHelper.quitForThread(getThread());
         Activity activity = (Activity) getTag("activity");
         if (activity != null) {
