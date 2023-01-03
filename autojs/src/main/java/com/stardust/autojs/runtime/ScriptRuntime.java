@@ -36,7 +36,6 @@ import com.stardust.autojs.runtime.api.MlKitOCR;
 import com.stardust.autojs.runtime.api.OCR;
 import com.stardust.autojs.runtime.api.Plugins;
 import com.stardust.autojs.runtime.api.Sensors;
-import com.stardust.autojs.runtime.api.Speech;
 import com.stardust.autojs.runtime.api.Threads;
 import com.stardust.autojs.runtime.api.Timers;
 import com.stardust.autojs.runtime.api.UI;
@@ -202,9 +201,6 @@ public class ScriptRuntime {
     @ScriptVariable
     public MlKitOCR mlKitOCR;
 
-    @ScriptVariable
-    public final Speech speech;
-
     private Images images;
 
     private static WeakReference<Context> applicationContext;
@@ -238,7 +234,6 @@ public class ScriptRuntime {
         plugins = new Plugins(context, this);
         ocr = new OCR();
         mlKitOCR = new MlKitOCR();
-        speech = new Speech(context);
     }
 
     public void init() {
@@ -474,7 +469,6 @@ public class ScriptRuntime {
         ignoresException(ui::recycle);
         ignoresException(ocr::release);
         ignoresException(mlKitOCR::release);
-        ignoresException(speech::destroy);
         ignoresException(() -> mTopLevelScope.get().markReleased(engines.myEngine().getSource().toString()));
     }
 

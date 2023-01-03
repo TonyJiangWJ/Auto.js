@@ -18,7 +18,6 @@
 - 更新了内置rhino版本为1.7.14 支持字符串模板等JS特性。
 - 增加PaddleOCR 封装为 `$ocr` 具体使用见示例文件 无文档。目前存在低概率的模型初始化失败导致无法进行文字识别的问题，跟踪修复中。
 - 增加了tess-two 使用可以参考 [TesserOcrUtil](https://github.com/TonyJiangWJ/AutoScriptBase/blob/master/lib/prototype/TesserOcrUtil.js)，需要训练好的 `traineddata` 进行支持。使用比较麻烦 建议直接使用PaddleOCR。
-- 增加了tts支持 提交作者为 @[syhyz](https://github.com/syhyz) 封装为 `$speech` ，具体使用见示例文件 无文档。
 - 重新整理了部分代码结构，更新了gradle到7.x, 更新了其他依赖包版本不详细罗列。
 - 修复了其他的不痛不痒的缺陷。
 - 如果脚本需要防止类似淘宝的无障碍检测，请使用 `AutoJs.fakeIdlefish`。可以规避无障碍检测，将包名直接改成闲鱼的包名，加了个.x的后缀 `com.taobao.idlefish.x`。代码分支为 [fake_idlefish](https://github.com/TonyJiangWJ/Auto.js/tree/fake_idlefish)
