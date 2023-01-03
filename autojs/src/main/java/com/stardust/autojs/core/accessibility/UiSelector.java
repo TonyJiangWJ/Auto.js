@@ -168,7 +168,9 @@ public class UiSelector extends UiGlobalSelector {
                 throw new ScriptInterruptedException();
             }
             try {
-                Thread.sleep(50);
+                synchronized (Thread.currentThread()) {
+                    Thread.currentThread().wait(50);
+                }
             } catch (InterruptedException e) {
                 throw new ScriptInterruptedException();
             }
@@ -196,9 +198,14 @@ public class UiSelector extends UiGlobalSelector {
                 return null;
             }
             try {
-                Thread.sleep(50);
+                synchronized (Thread.currentThread()) {
+                    Thread.currentThread().wait(50);
+                }
             } catch (InterruptedException e) {
                 throw new ScriptInterruptedException();
+            }
+            if (SystemClock.uptimeMillis() - start > 0.7 * timeout) {
+                mAccessibilityBridge.clearCache();
             }
             uiObjectCollection = find(1);
         }

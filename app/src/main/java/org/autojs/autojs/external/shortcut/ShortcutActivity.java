@@ -29,7 +29,11 @@ public class ShortcutActivity extends Activity {
             Scripts.INSTANCE.run(new ScriptFile(path));
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            String msg = e.getMessage();
+            if (msg == null) {
+                return;
+            }
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
         }
     }
 

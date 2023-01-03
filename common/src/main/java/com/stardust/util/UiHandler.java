@@ -27,6 +27,9 @@ public class UiHandler extends Handler {
         post(new Runnable() {
             @Override
             public void run() {
+                if (message == null) {
+                    return;
+                }
                 Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show();
             }
         });
@@ -36,6 +39,9 @@ public class UiHandler extends Handler {
         post(new Runnable() {
             @Override
             public void run() {
+                if (mContext.getResources().getText(resId) == null) {
+                    return;
+                }
                 Toast.makeText(mContext, resId, Toast.LENGTH_SHORT).show();
             }
         });

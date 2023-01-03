@@ -50,7 +50,9 @@ public class TaskerScriptEditActivity extends BaseActivity {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(Observers.emptyConsumer(),
                         ex -> {
-                            Toast.makeText(TaskerScriptEditActivity.this, ex.getMessage(), Toast.LENGTH_LONG).show();
+                            if (ex.getMessage() != null) {
+                                Toast.makeText(TaskerScriptEditActivity.this, ex.getMessage(), Toast.LENGTH_LONG).show();
+                            }
                             finish();
                         });
         BaseActivity.setToolbarAsBack(this, R.id.toolbar, mEditorView.getName());

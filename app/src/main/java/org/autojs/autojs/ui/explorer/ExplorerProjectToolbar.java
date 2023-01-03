@@ -80,7 +80,9 @@ public class ExplorerProjectToolbar extends CardView {
                     .launch(AutoJs.getInstance().getScriptEngineService());
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+            if (e.getMessage() != null) {
+                Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+            }
         }
     }
 

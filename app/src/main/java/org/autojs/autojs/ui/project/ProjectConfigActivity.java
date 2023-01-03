@@ -147,7 +147,9 @@ public class ProjectConfigActivity extends BaseActivity {
             saveIcon(mIconBitmap)
                     .subscribe(ignored -> saveProjectConfig(), e -> {
                         e.printStackTrace();
-                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        if (e.getMessage() != null) {
+                            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
                     });
         } else {
             saveProjectConfig();
@@ -165,7 +167,9 @@ public class ProjectConfigActivity extends BaseActivity {
                         finish();
                     }, e -> {
                         e.printStackTrace();
-                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        if (e.getMessage() != null) {
+                            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
                     });
         } else {
             Observable.fromCallable(() -> {
@@ -181,7 +185,9 @@ public class ProjectConfigActivity extends BaseActivity {
                         finish();
                     }, e -> {
                         e.printStackTrace();
-                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        if (e.getMessage() != null) {
+                            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
                     });
         }
     }

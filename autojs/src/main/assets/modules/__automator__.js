@@ -34,6 +34,7 @@ module.exports = function(runtime, global){
      automator.gesture = runtime.automator.gesture.bind(runtime.automator, 0);
      automator.gestureAsync = runtime.automator.gestureAsync.bind(runtime.automator, 0);
      automator.swipe = runtime.automator.swipe.bind(runtime.automator);
+     automator.takeScreenshot = runtime.automator.takeScreenshot.bind(runtime.automator);
      automator.gestures  = function(){
         return runtime.automator.gestures(toStrokes(arguments));
      }
@@ -155,6 +156,14 @@ module.exports = function(runtime, global){
             flagsInt |= flag;
         }
         runtime.accessibilityBridge.setFlags(flagsInt);
+    }
+
+    auto.clearCache = function () {
+        let service = auto.service;
+        if (!service) {
+            return;
+        }
+        runtime.getProperty('func.clear-accessibility-cache').run();
     }
 
     auto.__defineGetter__("service", function() {

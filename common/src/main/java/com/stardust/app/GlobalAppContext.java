@@ -44,6 +44,9 @@ public class GlobalAppContext {
     }
 
     public static void toast(final String message) {
+        if (message == null) {
+            return;
+        }
         if (Looper.myLooper() == Looper.getMainLooper()) {
             Toast.makeText(get(), message, Toast.LENGTH_SHORT).show();
             return;

@@ -460,7 +460,9 @@ public class EditorView extends FrameLayout implements CodeCompletionBar.OnHintC
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(Observers.emptyConsumer(), e -> {
                     e.printStackTrace();
-                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                    if (e.getMessage() != null) {
+                        Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
                 });
     }
 

@@ -138,7 +138,7 @@ public abstract class AutoJs {
     }
 
     protected ScriptRuntime createRuntime() {
-        return new ScriptRuntime.Builder()
+        ScriptRuntime runtime = new ScriptRuntime.Builder()
                 .setConsole(new ConsoleImpl(mUiHandler, mGlobalConsole))
                 .setScreenCaptureRequester(mScreenCaptureRequester)
                 .setAccessibilityBridge(new AccessibilityBridgeImpl(mUiHandler))
@@ -146,6 +146,8 @@ public abstract class AutoJs {
                 .setAppUtils(mAppUtils)
                 .setEngineService(mScriptEngineService)
                 .setShellSupplier(() -> new Shell(mContext, true)).build();
+        runtime.putProperty("func.clear-accessibility-cache", new ClearCache(runtime));
+        return runtime;
     }
 
     protected void registerActivityLifecycleCallbacks() {
@@ -302,6 +304,22 @@ public abstract class AutoJs {
             logConfigurator.configure();
         } catch (Exception e) {
             Log.d("LOG4J-CONFIG", "初始化log4j失败");
+        }
+    }
+
+    /**
+     * 虽然很不要脸的抄袭的pro 但是反编译后发现是空的 很尴尬
+     */
+    private final class ClearCache implements Runnable {
+        private ScriptRuntime runtime;
+
+        public ClearCache(ScriptRuntime runtime) {
+            this.runtime = runtime;
+        }
+
+        @Override
+        public void run() {
+            runtime.getAccessibilityBridge().clearCache();
         }
     }
 }

@@ -45,7 +45,11 @@ public class BaseBroadcastReceiver extends BroadcastReceiver {
             AutoJs.getInstance().getScriptEngineService().execute(file.toSource(), config);
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+            String msg = e.getMessage();
+            if (msg == null) {
+                return;
+            }
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
         }
     }
 

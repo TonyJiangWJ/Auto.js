@@ -41,7 +41,7 @@ public class NodeBB {
                         .setLenient()
                         .create()))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .addCallAdapterFactory(CoroutineCallAdapterFactory.create())
+//                .addCallAdapterFactory(CoroutineCallAdapterFactory.create())
                 .client(new OkHttpClient.Builder()
                         .cookieJar(new WebkitCookieManagerProxy())
                         .build())

@@ -1,6 +1,5 @@
 package com.stardust.autojs.core.accessibility;
 
-import android.app.ActivityManager;
 import android.app.AppOpsManager;
 import android.content.Context;
 import android.os.Build;
@@ -8,6 +7,7 @@ import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import android.util.Log;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
 
@@ -19,6 +19,7 @@ import com.stardust.autojs.core.activity.ActivityInfoProvider;
 import com.stardust.view.accessibility.AccessibilityNotificationObserver;
 import com.stardust.view.accessibility.AccessibilityService;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,12 +48,14 @@ public abstract class AccessibilityBridge {
     private WindowFilter mWindowFilter;
     private final UiHandler mUiHandler;
     private final Context mContext;
+    private final AccessibilityCacheSupport cacheSupport;
 
     public AccessibilityBridge(Context context, AccessibilityConfig config, UiHandler uiHandler) {
         mConfig = config;
         mUiHandler = uiHandler;
         mConfig.seal();
         mContext = context;
+        cacheSupport = new AccessibilityCacheSupport();
     }
 
     public abstract void ensureServiceEnabled();
@@ -148,5 +151,39 @@ public abstract class AccessibilityBridge {
 
     public AccessibilityConfig getConfig() {
         return mConfig;
+    }
+
+    public void clearCache() {
+        cacheSupport.clearCache();
+    }
+
+    public static class AccessibilityCacheSupport {
+        private Method clearCache;
+        private Method getInstance;
+        private boolean support = false;
+
+        public AccessibilityCacheSupport() {
+            try {
+                Class clz = Class.forName("android.view.accessibility.AccessibilityInteractionClient");
+                clearCache = clz.getMethod("clearCache");
+                getInstance = clz.getMethod("getInstance");
+                support = true;
+            } catch (Exception e) {
+                Log.d("A11yCache", "AccessibilityCacheSupport is not support");
+                // do nothing
+            }
+        }
+
+        public void clearCache() {
+            if (support) {
+                try {
+                    clearCache.invoke(getInstance.invoke(null));
+                } catch (Exception e) {
+                    Log.d("A11yCache", "clear cache failed" + e);
+                }
+            } else {
+                Log.d("A11yCache", "clear cache is not supported");
+            }
+        }
     }
 }
