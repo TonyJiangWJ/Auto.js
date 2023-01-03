@@ -2,12 +2,15 @@ package com.stardust.autojs.core.accessibility
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
+import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.Build
 import android.os.Handler
+import android.view.Display
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
 import com.stardust.autojs.annotation.ScriptInterface
+import com.stardust.autojs.core.image.ImageWrapper
 import com.stardust.autojs.runtime.ScriptRuntime
 import com.stardust.autojs.runtime.accessibility.AccessibilityConfig
 import com.stardust.automator.GlobalActionAutomator
@@ -15,9 +18,12 @@ import com.stardust.automator.UiObject
 import com.stardust.automator.simple_action.ActionFactory
 import com.stardust.automator.simple_action.ActionTarget
 import com.stardust.automator.simple_action.SimpleAction
+import com.stardust.concurrent.VolatileDispose
 import com.stardust.util.DeveloperUtils
 import com.stardust.util.ScreenMetrics
 import java.lang.ref.WeakReference
+import java.util.concurrent.Executors
+
 
 /**
  * Created by Stardust on 2017/4/2.
@@ -278,4 +284,40 @@ class SimpleActionAutomator(
         mScreenMetrics = metrics
     }
 
+    @ScriptInterface
+    @RequiresApi(Build.VERSION_CODES.R)
+    fun takeScreenshot(): ImageWrapper {
+        mAccessibilityBridge.ensureServiceEnabled()
+        val dispose: VolatileDispose<ImageWrapper> = VolatileDispose<ImageWrapper>()
+        mAccessibilityBridge.service?.takeScreenshot(
+            Display.DEFAULT_DISPLAY,
+            Executors.newSingleThreadExecutor(),
+            TakeScreenshotCallback(dispose)
+        )
+        return dispose.blockedGet();
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    class TakeScreenshotCallback(
+        val dispose: VolatileDispose<ImageWrapper>
+    ): AccessibilityService.TakeScreenshotCallback {
+
+        override fun onSuccess(screenshot: AccessibilityService.ScreenshotResult) {
+            val bitmap = Bitmap.wrapHardwareBuffer(screenshot.hardwareBuffer, screenshot.colorSpace)
+            if (bitmap == null) {
+                dispose.setAndNotify(null)
+                return
+            }
+            val tmp = bitmap.copy(Bitmap.Config.ARGB_8888, true)
+            dispose.setAndNotify(ImageWrapper.ofBitmap(tmp))
+            bitmap.recycle()
+        }
+
+        override fun onFailure(errorCode: Int) {
+            dispose.setAndNotify(null)
+        }
+
+    }
+
+    class Result()
 }

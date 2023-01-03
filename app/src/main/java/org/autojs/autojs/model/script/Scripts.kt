@@ -104,7 +104,9 @@ object Scripts {
                     ExecutionConfig(workingDirectory = file.parent))
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(GlobalAppContext.get(), e.message, Toast.LENGTH_LONG).show()
+            if (e.message != null) {
+                Toast.makeText(GlobalAppContext.get(), e.message, Toast.LENGTH_LONG).show()
+            }
             null
         }
 
@@ -116,7 +118,9 @@ object Scripts {
             AutoJs.getInstance().scriptEngineService.execute(source, ExecutionConfig(workingDirectory = Pref.getScriptDirPath()))
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(GlobalAppContext.get(), e.message, Toast.LENGTH_LONG).show()
+            if (e.message != null) {
+                Toast.makeText(GlobalAppContext.get(), e.message, Toast.LENGTH_LONG).show()
+            }
             null
         }
 

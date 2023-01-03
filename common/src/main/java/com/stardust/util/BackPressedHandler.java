@@ -75,7 +75,9 @@ public interface BackPressedHandler {
                 mActivity.finish();
             } else {
                 mLastPressedMillis = System.currentTimeMillis();
-                Toast.makeText(mActivity, mToast, Toast.LENGTH_SHORT).show();
+                if (mToast != null) {
+                    Toast.makeText(mActivity, mToast, Toast.LENGTH_SHORT).show();
+                }
             }
             return true;
         }

@@ -7,71 +7,40 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
-
-import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.RequestOptions;
 import com.stardust.app.AppOpsKt;
 import com.stardust.app.GlobalAppContext;
 import com.stardust.notification.NotificationListenerService;
+import com.stardust.theme.ThemeColorManager;
+import com.stardust.util.IntentUtil;
+import com.stardust.view.accessibility.AccessibilityService;
 
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.EFragment;
+import org.androidannotations.annotations.ViewById;
 import org.autojs.autojs.Pref;
 import org.autojs.autojs.R;
 import org.autojs.autojs.autojs.AutoJs;
 import org.autojs.autojs.external.foreground.ForegroundService;
-import org.autojs.autojs.network.UserService;
+import org.autojs.autojs.pluginclient.DevPluginService;
 import org.autojs.autojs.timing.TimedTaskScheduler;
 import org.autojs.autojs.timing.work.AlarmManagerProvider;
 import org.autojs.autojs.timing.work.WorkManagerProvider;
 import org.autojs.autojs.timing.work.WorkProviderConstants;
+import org.autojs.autojs.tool.AccessibilityServiceTool;
 import org.autojs.autojs.tool.Observers;
+import org.autojs.autojs.tool.WifiTool;
 import org.autojs.autojs.ui.BaseActivity;
 import org.autojs.autojs.ui.common.NotAskAgainDialog;
 import org.autojs.autojs.ui.floating.CircularMenu;
 import org.autojs.autojs.ui.floating.FloatyWindowManger;
-import org.autojs.autojs.network.NodeBB;
-import org.autojs.autojs.network.VersionService;
-import org.autojs.autojs.network.api.UserApi;
-import org.autojs.autojs.network.entity.user.User;
-import org.autojs.autojs.network.entity.VersionInfo;
-import org.autojs.autojs.tool.SimpleObserver;
 import org.autojs.autojs.ui.main.MainActivity;
 import org.autojs.autojs.ui.main.community.CommunityFragment;
-import org.autojs.autojs.ui.user.LoginActivity_;
 import org.autojs.autojs.ui.settings.SettingsActivity;
-import org.autojs.autojs.ui.update.UpdateInfoDialogBuilder;
-import org.autojs.autojs.ui.user.WebActivity;
-import org.autojs.autojs.ui.user.WebActivity_;
-import org.autojs.autojs.ui.widget.AvatarView;
-
-import com.stardust.theme.ThemeColorManager;
-
-import org.autojs.autojs.theme.ThemeColorManagerCompat;
-
-import com.stardust.view.accessibility.AccessibilityService;
-
-import org.autojs.autojs.pluginclient.DevPluginService;
-import org.autojs.autojs.tool.AccessibilityServiceTool;
-import org.autojs.autojs.tool.WifiTool;
-
-import com.stardust.util.IntentUtil;
-
-import org.androidannotations.annotations.AfterViews;
-import org.androidannotations.annotations.Click;
-import org.androidannotations.annotations.EFragment;
-import org.androidannotations.annotations.ViewById;
-import org.autojs.autojs.ui.widget.BackgroundTarget;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -79,6 +48,9 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -96,14 +68,8 @@ public class DrawerFragment extends androidx.fragment.app.Fragment {
 
     @ViewById(R.id.header)
     View mHeaderView;
-//    @ViewById(R.id.username)
-    TextView mUserName;
-//    @ViewById(R.id.avatar)
-    AvatarView mAvatar;
     @ViewById(R.id.shadow)
     View mShadow;
-//    @ViewById(R.id.default_cover)
-    View mDefaultCover;
     @ViewById(R.id.drawer_menu)
     RecyclerView mDrawerMenu;
 
@@ -124,7 +90,7 @@ public class DrawerFragment extends androidx.fragment.app.Fragment {
     private DrawerMenuItem mForegroundServiceItem = new DrawerMenuItem(R.drawable.ic_service_green, R.string.text_foreground_service, R.string.key_foreground_servie, this::toggleForegroundService);
 
     private DrawerMenuItem mFloatingWindowItem = new DrawerMenuItem(R.drawable.ic_robot_64, R.string.text_floating_window, 0, this::showOrDismissFloatingWindow);
-    private DrawerMenuItem mCheckForUpdatesItem = new DrawerMenuItem(R.drawable.ic_check_for_updates, R.string.text_check_for_updates, this::checkForUpdates);
+
 
     private DrawerMenuAdapter mDrawerMenuAdapter;
     private Disposable mConnectionStateDisposable;
@@ -182,8 +148,7 @@ public class DrawerFragment extends androidx.fragment.app.Fragment {
                 new DrawerMenuItem(R.drawable.ic_personalize, R.string.text_theme_color, this::openThemeColorSettings),
                 new DrawerMenuItem(R.drawable.ic_night_mode, R.string.text_night_mode, R.string.key_night_mode, this::toggleNightMode),
                 new DrawerMenuItem(R.drawable.ic_descending_order, R.string.text_enable_alarm_manager, R.string.key_enable_alarm_manager, this::toggleWorkProvider),
-                new DrawerMenuItem(R.drawable.ic_enable_log, R.string.text_enable_debug_log, R.string.key_enable_debug_log, this::toggleDebugLog)//,
-//                mCheckForUpdatesItem
+                new DrawerMenuItem(R.drawable.ic_enable_log, R.string.text_enable_debug_log, R.string.key_enable_debug_log, this::toggleDebugLog)
         )));
         mDrawerMenu.setAdapter(mDrawerMenuAdapter);
         mDrawerMenu.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -340,35 +305,6 @@ public class DrawerFragment extends androidx.fragment.app.Fragment {
                 Toast.LENGTH_LONG).show();
     }
 
-    void checkForUpdates(DrawerMenuItemViewHolder holder) {
-        setProgress(mCheckForUpdatesItem, true);
-        VersionService.getInstance().checkForUpdates()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new SimpleObserver<VersionInfo>() {
-
-                    @Override
-                    public void onNext(@io.reactivex.annotations.NonNull VersionInfo versionInfo) {
-                        if (getActivity() == null)
-                            return;
-                        if (versionInfo.isNewer()) {
-                            new UpdateInfoDialogBuilder(getActivity(), versionInfo)
-                                    .show();
-                        } else {
-                            Toast.makeText(GlobalAppContext.get(), R.string.text_is_latest_version, Toast.LENGTH_SHORT).show();
-                        }
-                        setProgress(mCheckForUpdatesItem, false);
-                    }
-
-                    @Override
-                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                        e.printStackTrace();
-                        Toast.makeText(GlobalAppContext.get(), R.string.text_check_update_error, Toast.LENGTH_SHORT).show();
-                        setProgress(mCheckForUpdatesItem, false);
-                    }
-                });
-    }
-
-
     @Override
     public void onResume() {
         super.onResume();
@@ -386,11 +322,13 @@ public class DrawerFragment extends androidx.fragment.app.Fragment {
     }
 
     private void enableAccessibilityService() {
-        if (!Pref.shouldEnableAccessibilityServiceByRoot()) {
+        if (Pref.haveAdbPermission(requireContext())) {
+            enableAccessibilityServiceByAdb();
+        } else if (Pref.shouldEnableAccessibilityServiceByRoot()) {
+            enableAccessibilityServiceByRoot();
+        } else {
             AccessibilityServiceTool.goToAccessibilitySetting();
-            return;
         }
-        enableAccessibilityServiceByRoot();
     }
 
     private void enableAccessibilityServiceByRoot() {
@@ -407,6 +345,19 @@ public class DrawerFragment extends androidx.fragment.app.Fragment {
                 });
     }
 
+    private void enableAccessibilityServiceByAdb() {
+        setProgress(mAccessibilityServiceItem, true);
+        Observable.fromCallable(() -> AccessibilityServiceTool.enableAccessibilityServiceByAdbAndWaitFor(4000))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(succeed -> {
+                    if (!succeed) {
+                        Toast.makeText(getContext(), R.string.text_enable_accessibitliy_service_by_adb_failed, Toast.LENGTH_SHORT).show();
+                        AccessibilityServiceTool.goToAccessibilitySetting();
+                    }
+                    setProgress(mAccessibilityServiceItem, false);
+                });
+    }
 
     @Subscribe
     public void onCircularMenuStateChange(CircularMenu.StateChangeEvent event) {
@@ -449,7 +400,7 @@ public class DrawerFragment extends androidx.fragment.app.Fragment {
 
 
     private void showMessage(CharSequence text) {
-        if (getContext() == null)
+        if (getContext() == null || text == null)
             return;
         Toast.makeText(getContext(), text, Toast.LENGTH_SHORT).show();
     }

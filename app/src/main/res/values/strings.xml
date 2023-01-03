@@ -161,6 +161,7 @@
     <string name="text_number_format_error">格式错误</string>
     <string name="text_accessibility_settings">打开无障碍服务</string>
     <string name="text_enable_accessibitliy_service_by_root_failed">使用root权限开启失败</string>
+    <string name="text_enable_accessibitliy_service_by_adb_failed">使用ADB权限开启失败</string>
     <string name="text_on_progress">处理中</string>
     <string name="text_delete_failed">删除失败</string>
     <string name="text_edit_script">编辑脚本</string>

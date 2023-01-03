@@ -104,7 +104,9 @@ public class ClassSearchDialogBuilder extends ThemeColorMaterialDialogBuilder {
                 }, t -> {
                     t.printStackTrace();
                     mProgressBar.setVisibility(View.GONE);
-                    Toast.makeText(context, t.getMessage(), Toast.LENGTH_LONG).show();
+                    if (t.getMessage() != null) {
+                        Toast.makeText(context, t.getMessage(), Toast.LENGTH_LONG).show();
+                    }
                 });
     }
 
