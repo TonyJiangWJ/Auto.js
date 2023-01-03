@@ -36,7 +36,6 @@ import com.stardust.autojs.runtime.api.MlKitOCR;
 import com.stardust.autojs.runtime.api.OCR;
 import com.stardust.autojs.runtime.api.Plugins;
 import com.stardust.autojs.runtime.api.Sensors;
-import com.stardust.autojs.runtime.api.SevenZip;
 import com.stardust.autojs.runtime.api.Speech;
 import com.stardust.autojs.runtime.api.Threads;
 import com.stardust.autojs.runtime.api.Timers;
@@ -198,9 +197,6 @@ public class ScriptRuntime {
     public final Plugins plugins;
 
     @ScriptVariable
-    public SevenZip zips;
-
-    @ScriptVariable
     public OCR ocr;
 
     @ScriptVariable
@@ -240,7 +236,6 @@ public class ScriptRuntime {
         files = new Files(this);
         media = new Media(context, this);
         plugins = new Plugins(context, this);
-        zips = new SevenZip();
         ocr = new OCR();
         mlKitOCR = new MlKitOCR();
         speech = new Speech(context);
