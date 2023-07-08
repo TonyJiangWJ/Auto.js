@@ -3,6 +3,6 @@
   "appVersionName": "4.1.23.0103.alpha Modify",
   "target": 31,
   "mini": 21,
-  "compile": 31,
+  "compile": 33,
   "buildTool": "30.0.3"
 }

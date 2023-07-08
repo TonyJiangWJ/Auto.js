@@ -1,6 +1,7 @@
 package com.stardust.autojs.rhino;
 
 import android.os.Build;
+import android.util.Log;
 
 import com.android.dx.command.dexer.Main;
 import com.stardust.pio.PFiles;
@@ -21,6 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -49,6 +51,7 @@ public class AndroidClassLoader extends ClassLoader implements GeneratedClassLoa
     private final File mCacheDir;
     private final File mLibsDir;
     private final Logger logger = Logger.getLogger(AndroidClassLoader.class);
+    private final Map<Integer, Set<String>> loadedDexMap = new HashMap<>();
 
     private final WeakHashMap<DeleteOnFinalizeFile, String> weakDexFileMap = new WeakHashMap<>();
 
@@ -145,6 +148,21 @@ public class AndroidClassLoader extends ClassLoader implements GeneratedClassLoa
     private String generateDexFileName(File jar) {
         String message = jar.getPath() + "_" + jar.lastModified();
         return MD5.md5(message);
+    }
+
+    public synchronized DexClassLoader loadDex(int runtimeHashCode, File file)  throws FileNotFoundException {
+        Set<String> loadedFiles = loadedDexMap.get(runtimeHashCode);
+        if (loadedFiles == null) {
+            loadedFiles = new HashSet<>();
+        }
+        if (loadedFiles.contains(file.getName())) {
+            logger.debug("当前文件已加载 跳过加载：" + file.getName());
+            return mDexClassLoaders.get(file.getName());
+        }
+        DexClassLoader loader = loadDex(file);
+        loadedFiles.add(file.getName());
+        loadedDexMap.put(runtimeHashCode, loadedFiles);
+        return loader;
     }
 
     public DexClassLoader loadDex(File file) throws FileNotFoundException {

@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.Build
 import android.os.Handler
+import android.os.Looper
 import android.view.Display
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
@@ -22,7 +23,6 @@ import com.stardust.concurrent.VolatileDispose
 import com.stardust.util.DeveloperUtils
 import com.stardust.util.ScreenMetrics
 import java.lang.ref.WeakReference
-import java.util.concurrent.Executors
 
 
 /**
@@ -285,20 +285,37 @@ class SimpleActionAutomator(
     }
 
     @ScriptInterface
+    fun lockScreen(): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+            return performGlobalAction(AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN)
+        return false
+    }
+
+    @ScriptInterface
     @RequiresApi(Build.VERSION_CODES.R)
     fun takeScreenshot(): ImageWrapper {
         mAccessibilityBridge.ensureServiceEnabled()
         val dispose: VolatileDispose<ImageWrapper> = VolatileDispose<ImageWrapper>()
         mAccessibilityBridge.service?.takeScreenshot(
             Display.DEFAULT_DISPLAY,
-            Executors.newSingleThreadExecutor(),
-            TakeScreenshotCallback(dispose)
+            mAccessibilityBridge.service!!.mainExecutor,
+            TakeScreenshotCallback(mAccessibilityBridge.service!!, dispose)
         )
-        return dispose.blockedGet();
+        return dispose.blockedGet()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    fun doTakeScreenshot(dispose: VolatileDispose<ImageWrapper>) {
+        mAccessibilityBridge.service?.takeScreenshot(
+            Display.DEFAULT_DISPLAY,
+            mAccessibilityBridge.service!!.mainExecutor,
+            TakeScreenshotCallback(mAccessibilityBridge.service!!, dispose)
+        )
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
     class TakeScreenshotCallback(
+        val service: com.stardust.view.accessibility.AccessibilityService,
         val dispose: VolatileDispose<ImageWrapper>
     ): AccessibilityService.TakeScreenshotCallback {
 
@@ -314,6 +331,16 @@ class SimpleActionAutomator(
         }
 
         override fun onFailure(errorCode: Int) {
+            if (errorCode == AccessibilityService.ERROR_TAKE_SCREENSHOT_INTERVAL_TIME_SHORT) {
+                Handler(Looper.getMainLooper()).postDelayed({
+                    service.takeScreenshot(
+                        Display.DEFAULT_DISPLAY,
+                        service.mainExecutor,
+                        TakeScreenshotCallback(service, dispose)
+                    )
+                }, 50)
+                return
+            }
             dispose.setAndNotify(null)
         }
 

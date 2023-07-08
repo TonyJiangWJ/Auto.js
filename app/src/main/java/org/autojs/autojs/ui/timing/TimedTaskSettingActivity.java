@@ -191,7 +191,7 @@ public class TimedTaskSettingActivity extends BaseActivity {
     @AfterViews
     void setupViews() {
         setToolbarAsBack(getString(R.string.text_timed_task));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (mScriptFile != null) {
             mToolbar.setSubtitle(mScriptFile.getName());
         }
         mDailyTaskTimePicker.setIs24HourView(true);

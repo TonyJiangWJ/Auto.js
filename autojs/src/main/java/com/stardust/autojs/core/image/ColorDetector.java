@@ -104,7 +104,7 @@ public interface ColorDetector {
             int dR = R - mR;
             int dG = G - mG;
             int dB = B - mB;
-            double meanR = (mR + R) / 2;
+            double meanR = (mR + R) / 2.0;
             double weightR = 2 + meanR / 256;
             double weightG = 4.0;
             double weightB = 2 + (255 - meanR) / 256;

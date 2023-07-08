@@ -23,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 import static androidx.core.view.accessibility.AccessibilityNodeInfoCompat.ACTION_ACCESSIBILITY_FOCUS;
 import static androidx.core.view.accessibility.AccessibilityNodeInfoCompat.ACTION_ARGUMENT_COLUMN_INT;
@@ -167,13 +169,7 @@ public class UiSelector extends UiGlobalSelector {
             if (Thread.currentThread().isInterrupted()) {
                 throw new ScriptInterruptedException();
             }
-            try {
-                synchronized (Thread.currentThread()) {
-                    Thread.currentThread().wait(50);
-                }
-            } catch (InterruptedException e) {
-                throw new ScriptInterruptedException();
-            }
+            LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(50));
             uiObjectCollection = find();
         }
         return uiObjectCollection;
@@ -197,13 +193,7 @@ public class UiSelector extends UiGlobalSelector {
             if (timeout > 0 && SystemClock.uptimeMillis() - start > timeout) {
                 return null;
             }
-            try {
-                synchronized (Thread.currentThread()) {
-                    Thread.currentThread().wait(50);
-                }
-            } catch (InterruptedException e) {
-                throw new ScriptInterruptedException();
-            }
+            LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(50));
             if (SystemClock.uptimeMillis() - start > 0.7 * timeout) {
                 mAccessibilityBridge.clearCache();
             }
