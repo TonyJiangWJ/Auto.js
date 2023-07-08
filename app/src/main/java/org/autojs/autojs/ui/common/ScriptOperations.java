@@ -285,6 +285,7 @@ public class ScriptOperations {
 
     public void createShortcut(ScriptFile file) {
         mContext.startActivity(new Intent(mContext, ShortcutCreateActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 .putExtra(ShortcutCreateActivity.EXTRA_FILE, file));
     }
 

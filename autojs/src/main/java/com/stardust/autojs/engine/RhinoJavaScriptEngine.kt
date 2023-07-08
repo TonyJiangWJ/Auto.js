@@ -27,6 +27,7 @@ import java.lang.ref.WeakReference
 import java.net.URI
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.concurrent.thread
 
 /**
  * Created by Stardust on 2017/4/2.
@@ -59,7 +60,10 @@ open class RhinoJavaScriptEngine(private val mAndroidContext: android.content.Co
     }
 
     fun getThread(): Thread? {
-        return threadRef.get()
+        if (::threadRef.isInitialized) {
+            return threadRef.get()
+        }
+        return null
     }
 
     val scriptable: Scriptable

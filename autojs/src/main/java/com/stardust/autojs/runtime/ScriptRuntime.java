@@ -373,7 +373,7 @@ public class ScriptRuntime {
     public void loadDex(String path) {
         path = files.path(path);
         try {
-            ((AndroidClassLoader) ContextFactory.getGlobal().getApplicationClassLoader()).loadDex(new File(path));
+            ((AndroidClassLoader) ContextFactory.getGlobal().getApplicationClassLoader()).loadDex(this.hashCode(), new File(path));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
