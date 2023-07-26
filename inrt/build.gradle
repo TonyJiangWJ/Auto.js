@@ -2,14 +2,26 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
+def homePath = System.properties['user.home']
+def storePasswd = System.getenv('autojspasswd')
+def keyPasswd = System.getenv('autojspasswd')
+def alias = System.getenv('autojsalias')
 android {
     compileSdkVersion versions.compile
     buildToolsVersion versions.buildTool
 
+    signingConfigs {
+        release {
+            storeFile file(homePath + '/auto-js-t-pkcs12.jks')
+            storePassword storePasswd
+            keyPassword keyPasswd
+            keyAlias = alias
+        }
+    }
     defaultConfig {
         applicationId "com.stardust.auojs.inrt"
         minSdkVersion versions.mini
-        targetSdkVersion versions.target
+        targetSdkVersion versions.buildApkTarget
         versionCode versions.appVersionCode - 200
         versionName versions.appVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -48,6 +60,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     lint {
@@ -58,20 +71,28 @@ android {
 
 def buildApkPluginForAbi(File pluginProjectDir, String abi) {
     copy {
-        from file('..\\app\\release\\')
-        into new File(pluginProjectDir, 'app\\src\\main\\assets')
+        def fromFile = file('build/outputs/apk/release/')
+        def intoFile = new File(pluginProjectDir, 'app/src/main/assets')
+        println 'copy from app releases，pluginDir:' + pluginProjectDir + ' fromFile:' + fromFile
+        println 'into file:' + intoFile
+        from fromFile
+        into intoFile
         def fileName = "inrt-" + abi + "-release.apk"
         include fileName
         rename fileName, 'template.apk'
     }
     exec {
+        println 'exec gradlew assembleRelease'
         workingDir pluginProjectDir
-        commandLine 'gradlew.bat', 'assembleRelease'
+        commandLine './gradlew', 'assembleRelease'
     }
     copy {
-        from new File(pluginProjectDir, 'app\\build\\outputs\\apk\\release')
-        into file('..\\common\\release')
-        def fileName = '打包插件-' + versions.appVersionName + '-release.apk'
+        def fromFile = new File(pluginProjectDir, 'app/build/outputs/apk/release')
+        def intoFile = file('../common/release')
+        println 'copy builder apk ' + abi + ' from ' + fromFile + ' into ' + intoFile
+        from fromFile
+        into intoFile
+        def fileName = 'app-release.apk'
         include fileName
         rename fileName, '打包插件-' + abi + '-' + versions.appVersionName + '-release.apk'
     }
@@ -79,7 +100,7 @@ def buildApkPluginForAbi(File pluginProjectDir, String abi) {
 
 task buildApkPlugin {
     doLast {
-        def pluginProjectDirPath = '..\\..\\AutoJsApkBuilderPlugin'
+        def pluginProjectDirPath = '../../Auto.js-ApkBuilder'
         def pluginProjectDir = file(pluginProjectDirPath)
         if (!pluginProjectDir.exists() || !pluginProjectDir.isDirectory()) {
             println 'pluginProjectDir not exists'
@@ -102,7 +123,6 @@ repositories {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
     androidTestImplementation('androidx.test.espresso:espresso-core:3.1.1-alpha01', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
@@ -111,6 +131,10 @@ dependencies {
         exclude group: 'com.android.support'
     })
     testImplementation "junit:junit:$junit_version"
+    api project(path: ':autojs-aar:opencv')
+    api project(path: ':autojs-aar:libtermexec')
+    api project(path: ':autojs-aar:emulatorview')
+    api project(path: ':autojs-aar:term')
     implementation project(':automator')
     implementation project(':common')
     implementation project(':autojs')

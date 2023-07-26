@@ -2,7 +2,11 @@ package org.autojs.autojs.autojs.build;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
+import com.android.apksig.ApkSigner;
+import com.android.apksigner.PasswordRetriever;
+import com.android.apksigner.SignerParams;
 import com.stardust.app.GlobalAppContext;
 import com.stardust.autojs.apkbuilder.ApkPackager;
 import com.stardust.autojs.apkbuilder.ManifestEditor;
@@ -15,7 +19,7 @@ import com.stardust.pio.PFiles;
 import com.stardust.util.AdvancedEncryptionStandard;
 import com.stardust.util.MD5;
 
-import org.autojs.autojs.build.TinySign;
+import org.autojs.autojs.build.ZipApkUtil;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -25,12 +29,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import pxb.android.StringItem;
 import pxb.android.axml.AxmlWriter;
 import zhao.arsceditor.ResDecoder.ARSCDecoder;
 import zhao.arsceditor.ResDecoder.data.ResTable;
+
+import static org.apache.commons.io.FileUtils.copyFile;
+import static org.apache.commons.io.FileUtils.copyInputStreamToFile;
 
 
 /**
@@ -39,6 +48,7 @@ import zhao.arsceditor.ResDecoder.data.ResTable;
 
 public class ApkBuilder {
 
+    private final static String TAG = "ApkBuilder";
 
     public interface ProgressCallback {
         void onPrepare(ApkBuilder builder);
@@ -277,11 +287,18 @@ public class ApkBuilder {
             try {
                 Bitmap bitmap = mAppConfig.icon.call();
                 if (bitmap != null) {
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100,
-                            new FileOutputStream(new File(mWorkspacePath, "res/mipmap/ic_launcher.png")));
+                    File iconFile = new File(mWorkspacePath, "res/drawable/inrt_launcher.png");
+                    if (iconFile.exists()) {
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100,
+                                new FileOutputStream(iconFile));
+                    } else {
+                        // TODO 新版本打包的图标文件被混淆了，需要解析resources.arsc文件，读取对应的图标文件
+                        GlobalAppContext.toast("图标文件未找到，替换图标失败");
+                    }
                 }
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                Log.e(TAG, "build: 替换图标异常", e);
+                GlobalAppContext.toast("替换图标异常，生成Apk将不支持自定义图标");
             }
         }
         if (mManifestEditor != null) {
@@ -297,10 +314,80 @@ public class ApkBuilder {
         if (mProgressCallback != null) {
             GlobalAppContext.post(() -> mProgressCallback.onSign(ApkBuilder.this));
         }
-        FileOutputStream fos = new FileOutputStream(mOutApkFile);
-        TinySign.sign(new File(mWorkspacePath), fos);
-        fos.close();
+        try(FileOutputStream fos = new FileOutputStream(mOutApkFile)) {
+            // 替换TinySign的签名打包操作为基础的zip打包
+            ZipApkUtil.packageApk(new File(mWorkspacePath), fos);
+        }
+        /*
+          TODO 进行zipalign，不进行也能够正常安装，暂时不去实现
+               目前找到的参考项目为 https://github.com/iyxan23/zipalign-java
+               直接引用有问题，等有时间了再去研究
+        */
+        // 使用ApkSigner进行v2签名
+        signWithApkSigner(mOutApkFile);
         return this;
+    }
+
+    private void signWithApkSigner(File mOutApkFile) throws IOException {
+        copyInputStreamToFile(GlobalAppContext.get().getAssets().open("keystore/buildpkg.bks"), new File(mWorkspacePath + "/buildpkg.bks"));
+        File tmpOutputApk = new File(mWorkspacePath + "/temp.apk");
+        List<ApkSigner.SignerConfig> signerConfigs = Collections.singletonList(buildSignConfig());
+        com.android.apksig.ApkSigner.Builder apkSignerBuilder = (new com.android.apksig.ApkSigner.Builder(signerConfigs))
+                .setInputApk(mOutApkFile).setOutputApk(tmpOutputApk)
+                .setOtherSignersSignaturesPreserved(false)
+                .setV1SigningEnabled(true)
+                .setV2SigningEnabled(true)
+                .setV3SigningEnabled(false);
+
+        ApkSigner apkSigner = apkSignerBuilder.build();
+
+        try {
+            apkSigner.sign();
+        } catch (Exception e) {
+            Log.e("ApkBuilder", "signWithApkSigner failed: ", e);
+            throw new RuntimeException(e);
+        }
+        try {
+            copyFile(tmpOutputApk, mOutApkFile);
+        } catch (Exception e) {
+            Log.e("ApkBuilder", "signWithApkSigner: 覆盖签名APK异常", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private ApkSigner.SignerConfig buildSignConfig() {
+        PasswordRetriever passwordRetriever = new PasswordRetriever();
+        SignerParams signer = new SignerParams();
+        signer.setKeystoreFile(mWorkspacePath + "/buildpkg.bks");
+        Log.d(TAG, "buildSignConfig: store file " + mWorkspacePath + "/buildpkg.bks");
+        signer.setName("signer #1");
+        signer.setKeystorePasswordSpec("pass:buildpkg");
+        signer.setKeystoreKeyAlias("buildpkg");
+        try {
+            signer.loadPrivateKeyAndCerts(passwordRetriever);
+        } catch (Exception e) {
+            Log.e(TAG, "buildSignConfig: Failed to load signer \"" + signer.getName() + "\": " + e.getMessage(), e);
+            throw new RuntimeException("Failed to load signer " + e.getMessage());
+        }
+
+        String v1SigBasename;
+        if (signer.getV1SigFileBasename() != null) {
+            v1SigBasename = signer.getV1SigFileBasename();
+        } else if (signer.getKeystoreKeyAlias() != null) {
+            v1SigBasename = signer.getKeystoreKeyAlias();
+        } else if (signer.getKeyFile() != null) {
+            String keyFileName = new File(signer.getKeyFile()).getName();
+            int delimiterIndex = keyFileName.indexOf('.');
+            if (delimiterIndex == -1) {
+                v1SigBasename = keyFileName;
+            } else {
+                v1SigBasename = keyFileName.substring(0, delimiterIndex);
+            }
+        } else {
+            throw new RuntimeException("Neither KeyStore key alias nor private key file available");
+        }
+        Log.d(TAG, "buildSignConfig: sign base name is " + v1SigBasename);
+        return (new ApkSigner.SignerConfig.Builder(v1SigBasename, signer.getPrivateKey(), signer.getCerts())).build();
     }
 
     public ApkBuilder cleanWorkspace() {
