@@ -19,7 +19,7 @@ import java.io.InputStream;
 
 public class ApkBuilderPluginHelper {
 
-    private static final String PLUGIN_PACKAGE_NAME = "org.autojs.apkbuilderplugin";
+    private static final String PLUGIN_PACKAGE_NAME = "org.fake.builder.plugin";
     private static final String TEMPLATE_APK_PATH = "template.apk";
     private static final boolean DEBUG_APK_PLUGIN = false;
 

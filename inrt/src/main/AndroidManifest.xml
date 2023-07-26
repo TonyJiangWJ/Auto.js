@@ -25,7 +25,7 @@
     <application
         android:name=".App"
         android:allowBackup="false"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/inrt_launcher"
         android:label="inrt"
         android:supportsRtl="true"
         android:theme="@style/ScriptTheme"
