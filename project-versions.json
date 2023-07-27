@@ -1,9 +1,10 @@
 {
-  "appVersionCode": 483,
-  "appVersionName": "4.1.23.0708.alpha Modify",
+  "appVersionCode": 484,
+  "appVersionName": "4.1.23.0727.alpha Modify",
   "target": 31,
   "buildApkTarget": 29,
   "mini": 21,
   "compile": 33,
-  "buildTool": "30.0.3"
+  "buildTool": "30.0.3",
+  "patchName": "修改版"
 }
