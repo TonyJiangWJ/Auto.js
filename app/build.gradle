@@ -1,3 +1,5 @@
+import java.text.SimpleDateFormat
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
@@ -72,7 +74,6 @@ android {
         resolutionStrategy.force 'com.google.code.findbugs:jsr305:3.0.1'
     }
 
-    flavorDimensions "channel"
     splits {
 
         // Configures multiple APKs based on ABI.
@@ -95,24 +96,39 @@ android {
             universalApk false
         }
     }
-    productFlavors {
-        common {
-            buildConfigField "String", "CHANNEL", '"common"'
-        }
-        coolapk {
-            buildConfigField "String", "CHANNEL", '"coolapk"'
-        }
-    }
     lint {
         abortOnError false
         disable 'MissingTranslation', 'ExtraTranslation'
     }
-    // 避免压缩TensorFlow
-//    aaptOptions {
-//        noCompress "tflite"
-//    }
+}
+def copyRelease(abi) {
+    copy {
+        def fromFile = file('./build/outputs/apk/release')
+        def intoFile = file('../common/release')
+        println 'copy release apk ' + abi + ' from ' + fromFile + ' into ' + intoFile
+        from fromFile
+        into intoFile
+        def fileName = 'app-' + abi + '-release.apk'
+        include fileName
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd")
+        def currentDate = sdf.format(new Date())
+        rename fileName, versions.patchName + '.' + abi + '.' + currentDate + '.apk'
+    }
 }
 
+
+task copyReleaseApk {
+    doLast {
+        copyRelease('armeabi-v7a')
+        copyRelease('arm64-v8a')
+    }
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name == 'assembleRelease') {
+        task.finalizedBy 'copyReleaseApk'
+    }
+}
 
 repositories {
     google()

@@ -78,7 +78,7 @@ class ArscUtil {
         }
 
         // 实现资源回调接口
-        val callback = ARSCCallBack { config, type, key, value ->
+        val innerCallback = ARSCCallBack { config, type, key, value ->
             if (key == null || type == null) return@ARSCCallBack
             callback?.invoke(config, type, key, value)
             // 这里是为了出去一些不能编辑的字符串

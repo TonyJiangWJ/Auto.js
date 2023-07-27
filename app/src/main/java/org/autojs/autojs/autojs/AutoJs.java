@@ -183,9 +183,6 @@ public class AutoJs extends com.stardust.autojs.AutoJs {
     @Override
     protected AccessibilityConfig createAccessibilityConfig() {
         AccessibilityConfig config = super.createAccessibilityConfig();
-        if (BuildConfig.CHANNEL.equals("coolapk")) {
-            config.addWhiteList("com.coolapk.market");
-        }
         return config;
     }
 
