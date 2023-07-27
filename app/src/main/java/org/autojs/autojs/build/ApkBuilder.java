@@ -1,4 +1,4 @@
-package org.autojs.autojs.autojs.build;
+package org.autojs.autojs.build;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -19,8 +19,6 @@ import com.stardust.pio.PFiles;
 import com.stardust.util.AdvancedEncryptionStandard;
 import com.stardust.util.MD5;
 
-import org.autojs.autojs.build.ZipApkUtil;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,9 +30,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import pxb.android.StringItem;
 import pxb.android.axml.AxmlWriter;
+import zhao.arsceditor.ArscUtil;
 import zhao.arsceditor.ResDecoder.ARSCDecoder;
 import zhao.arsceditor.ResDecoder.data.ResTable;
 
@@ -292,8 +292,27 @@ public class ApkBuilder {
                         bitmap.compress(Bitmap.CompressFormat.PNG, 100,
                                 new FileOutputStream(iconFile));
                     } else {
-                        // TODO 新版本打包的图标文件被混淆了，需要解析resources.arsc文件，读取对应的图标文件
-                        GlobalAppContext.toast("图标文件未找到，替换图标失败");
+                        // 新版本打包的图标文件被混淆了，需要解析resources.arsc文件，读取对应的图标文件
+                        ArscUtil arscUtil = new ArscUtil();
+                        AtomicBoolean replaceSuccess = new AtomicBoolean(false);
+                        arscUtil.openArsc(mWorkspacePath + "/resources.arsc", (config, type, key, value) -> {
+                            if ("mipmap".equals(type) || "drawable".equals(type)) {
+                                if ("inrt_launcher".equals(key) || "ic_launcher".equals(key)) {
+                                    Log.d(TAG, String.format("找到了图标文件为：%s %s/%s => %s", config, type, key, value));
+                                    File asrcIconFile = new File(mWorkspacePath, value);
+                                    try {
+                                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(asrcIconFile));
+                                        replaceSuccess.set(true);
+                                    } catch (Exception e) {
+                                        Log.e(TAG, "build: 替换图标文件异常", e);
+                                    }
+                                }
+                            }
+                            return null;
+                        });
+                        if (!replaceSuccess.get()) {
+                            GlobalAppContext.toast("图标文件未找到，替换图标失败");
+                        }
                     }
                 }
             } catch (Exception e) {
