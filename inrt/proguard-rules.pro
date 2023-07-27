@@ -27,7 +27,3 @@
 -dontwarn org.mozilla.javascript.**
 -dontwarn jackpal.androidterm.**
 -keep class org.mozilla.javascript.** { *; }
-# Keep all resources in the res/drawable directory
--keepclassmembers class com.stardust.auojs.inrt.R$drawable {
-    public static final int inrt_launcher;
-}

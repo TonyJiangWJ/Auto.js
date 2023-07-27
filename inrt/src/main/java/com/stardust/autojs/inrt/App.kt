@@ -1,4 +1,4 @@
-package com.stardust.auojs.inrt
+package com.stardust.autojs.inrt
 
 import android.app.Application
 import android.graphics.Bitmap
@@ -11,8 +11,8 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import com.stardust.app.GlobalAppContext
-import com.stardust.auojs.inrt.autojs.AutoJs
-import com.stardust.auojs.inrt.autojs.GlobalKeyObserver
+import com.stardust.autojs.inrt.autojs.AutoJs
+import com.stardust.autojs.inrt.autojs.GlobalKeyObserver
 import com.stardust.autojs.core.ui.inflater.ImageLoader
 import com.stardust.autojs.core.ui.inflater.util.Drawables
 

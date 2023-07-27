@@ -1,4 +1,4 @@
-package com.stardust.auojs.inrt.launch
+package com.stardust.autojs.inrt.launch
 
 import android.app.Activity
 import android.content.Context
@@ -7,24 +7,22 @@ import android.os.Handler
 import android.os.Looper
 import android.text.TextUtils
 
-import com.stardust.auojs.inrt.BuildConfig
-import com.stardust.auojs.inrt.LogActivity
-import com.stardust.auojs.inrt.Pref
-import com.stardust.auojs.inrt.autojs.AutoJs
+import com.stardust.autojs.inrt.BuildConfig
+import com.stardust.autojs.inrt.LogActivity
+import com.stardust.autojs.inrt.Pref
+import com.stardust.autojs.inrt.autojs.AutoJs
 import com.stardust.autojs.engine.encryption.ScriptEncryption
 import com.stardust.autojs.execution.ExecutionConfig
 import com.stardust.autojs.execution.ScriptExecution
 import com.stardust.autojs.project.ProjectConfig
 import com.stardust.autojs.script.JavaScriptFileSource
 import com.stardust.autojs.script.JavaScriptSource
-import com.stardust.autojs.script.ScriptSource
 import com.stardust.pio.PFiles
 import com.stardust.pio.UncheckedIOException
 import com.stardust.util.MD5
 
 import java.io.File
 import java.io.IOException
-import java.lang.reflect.Field
 
 /**
  * Created by Stardust on 2018/1/24.

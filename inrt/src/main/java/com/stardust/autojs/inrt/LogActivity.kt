@@ -1,4 +1,4 @@
-package com.stardust.auojs.inrt
+package com.stardust.autojs.inrt
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,8 +8,8 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 
-import com.stardust.auojs.inrt.autojs.AutoJs
-import com.stardust.auojs.inrt.launch.GlobalProjectLauncher
+import com.stardust.autojs.inrt.autojs.AutoJs
+import com.stardust.autojs.inrt.launch.GlobalProjectLauncher
 import com.stardust.autojs.core.console.ConsoleView
 import com.stardust.autojs.core.console.ConsoleImpl
 
