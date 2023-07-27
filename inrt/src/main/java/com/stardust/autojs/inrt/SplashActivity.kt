@@ -1,4 +1,4 @@
-package com.stardust.auojs.inrt
+package com.stardust.autojs.inrt
 
 import android.Manifest
 import android.content.Intent
@@ -13,8 +13,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.widget.TextView
 import android.widget.Toast
 
-import com.stardust.auojs.inrt.autojs.AutoJs
-import com.stardust.auojs.inrt.launch.GlobalProjectLauncher
+import com.stardust.autojs.inrt.autojs.AutoJs
+import com.stardust.autojs.inrt.launch.GlobalProjectLauncher
 
 import java.util.ArrayList
 

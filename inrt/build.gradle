@@ -1,3 +1,5 @@
+import java.util.regex.Pattern
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
@@ -19,7 +21,7 @@ android {
         }
     }
     defaultConfig {
-        applicationId "com.stardust.auojs.inrt"
+        applicationId "com.stardust.autojs.inrt"
         minSdkVersion versions.mini
         targetSdkVersion versions.buildApkTarget
         versionCode versions.appVersionCode - 200
@@ -69,6 +71,17 @@ android {
     }
 }
 
+static def inspectSimpleVersion(originalString) {
+    // 使用正则表达式匹配版本号部分
+    def versionPattern = Pattern.compile(/.*(\d+\.\d+\.\d+\.\d+).*/)
+    def matcher = versionPattern.matcher(originalString)
+    if (matcher.find()) {
+        def versionPart = matcher.group(1)
+        return versionPart
+    }
+    return originalString
+}
+
 def buildApkPluginForAbi(File pluginProjectDir, String abi) {
     copy {
         def fromFile = file('build/outputs/apk/release/')
@@ -94,7 +107,7 @@ def buildApkPluginForAbi(File pluginProjectDir, String abi) {
         into intoFile
         def fileName = 'app-release.apk'
         include fileName
-        rename fileName, '打包插件-' + abi + '-' + versions.appVersionName + '-release.apk'
+        rename fileName, '打包插件-' + abi + '-' + inspectSimpleVersion(versions.appVersionName) + '.apk'
     }
 }
 

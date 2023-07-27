@@ -1,7 +1,7 @@
-package com.stardust.auojs.inrt.autojs
+package com.stardust.autojs.inrt.autojs
 
 import com.stardust.app.GlobalAppContext
-import com.stardust.auojs.inrt.R
+import com.stardust.autojs.inrt.R
 import com.stardust.autojs.execution.ScriptExecution
 import com.stardust.autojs.execution.ScriptExecutionListener
 

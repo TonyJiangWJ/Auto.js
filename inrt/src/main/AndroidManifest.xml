@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools"
-          package="com.stardust.auojs.inrt">
+          package="com.stardust.autojs.inrt">
 
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
@@ -14,6 +17,9 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
 
     <!-- 非Auto.js运行必需，不会主动申请，某些脚本可以自行申请-->
@@ -21,9 +27,12 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:ignore="CoarseFineLocation" />
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
+    <!-- Ad SDK Permissions -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+
 
     <application
-        android:name=".App"
+        android:name="com.stardust.autojs.inrt.App"
         android:allowBackup="false"
         android:icon="@drawable/inrt_launcher"
         android:label="inrt"
@@ -34,12 +43,12 @@
         tools:ignore="GoogleAppIndexingWarning"
         tools:replace="android:label, android:allowBackup"
         tools:targetApi="m">
-        <activity android:name=".LogActivity" android:exported="false">
+        <activity android:name="com.stardust.autojs.inrt.LogActivity" android:exported="false">
 
         </activity>
 
         <activity
-            android:name=".SplashActivity"
+            android:name="com.stardust.autojs.inrt.SplashActivity"
             android:theme="@style/AppTheme.Splash"
             android:exported="true">
             <intent-filter>
@@ -49,7 +58,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".SettingsActivity" android:exported="false"/>
+        <activity android:name="com.stardust.autojs.inrt.SettingsActivity" android:exported="false"/>
 
         <service
             android:name="com.stardust.notification.NotificationListenerService"

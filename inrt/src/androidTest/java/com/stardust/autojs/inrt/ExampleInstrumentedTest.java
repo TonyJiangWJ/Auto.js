@@ -1,4 +1,4 @@
-package com.stardust.auojs.inrt;
+package com.stardust.autojs.inrt;
 
 import android.content.Context;
 import androidx.test.InstrumentationRegistry;

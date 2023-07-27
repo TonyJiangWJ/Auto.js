@@ -1,4 +1,4 @@
-package com.stardust.auojs.inrt.autojs
+package com.stardust.autojs.inrt.autojs
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Context

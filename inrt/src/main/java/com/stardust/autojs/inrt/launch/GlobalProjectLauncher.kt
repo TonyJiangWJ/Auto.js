@@ -1,4 +1,4 @@
-package com.stardust.auojs.inrt.launch
+package com.stardust.autojs.inrt.launch
 
 import android.annotation.SuppressLint
 import com.stardust.app.GlobalAppContext
