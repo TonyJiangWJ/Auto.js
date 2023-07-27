@@ -17,23 +17,23 @@
 - 更新opencv版本为4.5.5 支持SIFT找图等特性。
 - 更新了内置rhino版本为1.7.14 支持字符串模板等JS特性。
 - 增加PaddleOCR 封装为 `$ocr` 具体使用见示例文件 无文档。目前存在低概率的模型初始化失败导致无法进行文字识别的问题，跟踪修复中。
-- 增加了tess-two 使用可以参考 [TesserOcrUtil](https://github.com/TonyJiangWJ/AutoScriptBase/blob/master/lib/prototype/TesserOcrUtil.js)，需要训练好的 `traineddata` 进行支持。使用比较麻烦 建议直接使用PaddleOCR。
+- ~增加了tess-two 使用可以参考 [TesserOcrUtil](https://github.com/TonyJiangWJ/AutoScriptBase/blob/master/lib/prototype/TesserOcrUtil.js)，需要训练好的 `traineddata` 进行支持。~ 使用比较麻烦 建议直接使用PaddleOCR。
 - 重新整理了部分代码结构，更新了gradle到7.x, 更新了其他依赖包版本不详细罗列。
 - 修复了其他的不痛不痒的缺陷。
 - 如果脚本需要防止类似淘宝的无障碍检测，请使用 `AutoJs.fakeIdlefish`。可以规避无障碍检测，将包名直接改成闲鱼的包名，加了个.x的后缀 `com.taobao.idlefish.x`。代码分支为 [fake_idlefish](https://github.com/TonyJiangWJ/Auto.js/tree/fake_idlefish)
+- 完善了一下打包功能，增加V2签名避免报毒。打包插件见仓库：[Auto.js-ApkBuilder](https://github.com/TonyJiangWJ/Auto.js-ApkBuilder)
 
 ### 不支持的功能包括但不限于
 
-- 脚本打包功能因为没有开发对应插件，因此无法使用打包功能。[#4](https://github.com/TonyJiangWJ/Auto.js/issues/4)
 - 内置编辑器为原版。说实在并不好用，后续有想法进行更新替换，但是目前没有着手开发，所以可能存在一些问题并未修复。
 
 ## 声明
 
 - 如果是别的地方过来的，建议使用他们的版本，而不是使用这个项目，你所使用的脚本可能无法兼容。本项目主要是针对我自己的脚本，如蚂蚁森林和蚂蚁庄园等，所以不太会去适应所有开发者。
 - 第一我不是做安卓开发的所以能力有限，第二是我本人时间也不充裕，所有的优化都是为了能够运行稳定，而不是增加新功能。
-- 如果真拿来开发脚本的话 很多功能都是欠缺的，比如编辑器，比如脚本打包，比如USB连接VS插件等等。
+- 如果真拿来开发脚本的话 很多功能都是欠缺的，比如编辑器，比如USB连接VSCode插件等等。
 - 当然反馈的这些问题我也会尝试去修复，也欢迎提交PR，不过我有代码洁癖请保持commit简洁明晰，一个PR一个功能，如果不能满足的话建议还是不要提交了，免得浪费你我时间。
-- 如果为了更丰富的功能 还是建议使用其他开源版本 比如[AutoX](https://github.com/kkevsekk1/AutoX)，其拥有完善的插件和打包支持。
+- 如果为了更丰富的功能 还是建议使用其他开源版本 比如[AutoJS6](https://github.com/SuperMonster003/AutoJs6)和[AutoX](https://github.com/kkevsekk1/AutoX)，其拥有完善的文档、插件等支持。
 - 另外如果引用我这边的代码，请在引用代码的类或者方法名的注释中注明原作者信息以及来源是本项目。
 
 ## 关于编译问题的说明
@@ -64,20 +64,10 @@
 
 
 ### 信息
-* 官方论坛： [autojs.org](http://www.autojs.org)
-* 文档：可在[这里](https://hyb1996.github.io/AutoJs-Docs/)查看在线文档。目前文档仍然不完善。
-* 示例：可在[这里](https://github.com/hyb1996/NoRootScriptDroid/tree/master/app/src/main/assets/sample)查看一些示例，或者直接在应用内查看和运行。
-
-### 截图
-
-![screen-capture2](https://raw.githubusercontent.com/hyb1996/NoRootScriptDroid/master/screen-captures/ss02.png)
-
-![screen-capture5](https://raw.githubusercontent.com/hyb1996/NoRootScriptDroid/master/screen-captures/ss05.png)
-
-![screen-capture5](https://raw.githubusercontent.com/hyb1996/NoRootScriptDroid/master/screen-captures/ss07.png)
-
-![screen-capture5](https://raw.githubusercontent.com/hyb1996/NoRootScriptDroid/master/screen-captures/ss08.png)
+* ~官方论坛： [autojs.org](http://www.autojs.org)~
+* ~文档：可在[这里](https://hyb1996.github.io/AutoJs-Docs/)查看在线文档。目前文档仍然不完善。~
+* ~示例：可在[这里](https://github.com/hyb1996/NoRootScriptDroid/tree/master/app/src/main/assets/sample)查看一些示例，或者直接在应用内查看和运行。~
 
 ## License
-基于[Mozilla Public License Version 2.0](https://github.com/hyb1996/NoRootScriptDroid/blob/master/LICENSE.md)并附加以下条款：
+基于[Mozilla Public License Version 2.0](https://github.com/TonyJiangWJ/Auto.js/blob/master/LICENSE.md)并附加以下条款：
 * **非商业性使用** — 不得将此项目及其衍生的项目的源代码和二进制产品用于任何商业和盈利用途
