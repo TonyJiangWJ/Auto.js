@@ -11,6 +11,7 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -86,6 +87,18 @@ public class BuildActivity extends BaseActivity implements ApkBuilder.ProgressCa
 
     @ViewById(R.id.app_config)
     CardView mAppConfig;
+
+    @ViewById(R.id.use_open_cv)
+    CheckBox mUseOpenCv;
+
+    @ViewById(R.id.use_paddle_ocr)
+    CheckBox mUsePaddleOcr;
+
+    @ViewById(R.id.use_ml_kit_ocr)
+    CheckBox mUseMlKitOcr;
+
+    @ViewById(R.id.use_tess_two)
+    CheckBox mUseTessTwo;
 
     private ProjectConfig mProjectConfig;
     private MaterialDialog mProgressDialog;
@@ -264,23 +277,30 @@ public class BuildActivity extends BaseActivity implements ApkBuilder.ProgressCa
     }
 
     private ApkBuilder.AppConfig createAppConfig() {
+        ApkBuilder.AppConfig appConfig = null;
         if (mProjectConfig != null) {
-            return ApkBuilder.AppConfig.fromProjectConfig(mSource, mProjectConfig);
+            appConfig =  ApkBuilder.AppConfig.fromProjectConfig(mSource, mProjectConfig);
+        } else {
+            String jsPath = mSourcePath.getText().toString();
+            String versionName = mVersionName.getText().toString();
+            int versionCode = Integer.parseInt(mVersionCode.getText().toString());
+            String appName = mAppName.getText().toString();
+            String packageName = mPackageName.getText().toString();
+            appConfig = new ApkBuilder.AppConfig()
+                    .setAppName(appName)
+                    .setSourcePath(jsPath)
+                    .setPackageName(packageName)
+                    .setVersionCode(versionCode)
+                    .setVersionName(versionName)
+                    .setIcon(mIsDefaultIcon ? null : (Callable<Bitmap>) () ->
+                            BitmapTool.drawableToBitmap(mIcon.getDrawable())
+                    );
         }
-        String jsPath = mSourcePath.getText().toString();
-        String versionName = mVersionName.getText().toString();
-        int versionCode = Integer.parseInt(mVersionCode.getText().toString());
-        String appName = mAppName.getText().toString();
-        String packageName = mPackageName.getText().toString();
-        return new ApkBuilder.AppConfig()
-                .setAppName(appName)
-                .setSourcePath(jsPath)
-                .setPackageName(packageName)
-                .setVersionCode(versionCode)
-                .setVersionName(versionName)
-                .setIcon(mIsDefaultIcon ? null : (Callable<Bitmap>) () ->
-                        BitmapTool.drawableToBitmap(mIcon.getDrawable())
-                );
+        appConfig.setUseOpenCv(mUseOpenCv.isChecked());
+        appConfig.setUsePaddleOcr(mUsePaddleOcr.isChecked());
+        appConfig.setUseMlKitOcr(mUseMlKitOcr.isChecked());
+        appConfig.setUseTessTwo(mUseTessTwo.isChecked());
+        return appConfig;
     }
 
     private ApkBuilder callApkBuilder(File tmpDir, File outApk, ApkBuilder.AppConfig appConfig) throws Exception {
