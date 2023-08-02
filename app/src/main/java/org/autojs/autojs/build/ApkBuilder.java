@@ -27,6 +27,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -69,6 +70,10 @@ public class ApkBuilder {
         String packageName;
         ArrayList<File> ignoredDirs = new ArrayList<>();
         Callable<Bitmap> icon;
+        Boolean useOpenCv = false;
+        Boolean usePaddleOcr = false;
+        Boolean useMlKitOcr = false;
+        Boolean useTessTwo = false;
 
         public static AppConfig fromProjectConfig(String projectDir, ProjectConfig projectConfig) {
             String icon = projectConfig.getIcon();
@@ -146,6 +151,38 @@ public class ApkBuilder {
         public String getPackageName() {
             return packageName;
         }
+
+        public Boolean getUseOpenCv() {
+            return useOpenCv;
+        }
+
+        public void setUseOpenCv(Boolean useOpenCv) {
+            this.useOpenCv = useOpenCv;
+        }
+
+        public Boolean getUsePaddleOcr() {
+            return usePaddleOcr;
+        }
+
+        public void setUsePaddleOcr(Boolean usePaddleOcr) {
+            this.usePaddleOcr = usePaddleOcr;
+        }
+
+        public Boolean getUseMlKitOcr() {
+            return useMlKitOcr;
+        }
+
+        public void setUseMlKitOcr(Boolean useMlKitOcr) {
+            this.useMlKitOcr = useMlKitOcr;
+        }
+
+        public Boolean getUseTessTwo() {
+            return useTessTwo;
+        }
+
+        public void setUseTessTwo(Boolean useTessTwo) {
+            this.useTessTwo = useTessTwo;
+        }
     }
 
     private ProgressCallback mProgressCallback;
@@ -180,6 +217,56 @@ public class ApkBuilder {
         return this;
     }
 
+    /**
+     * 移除未使用的资源文件
+     */
+    private void removeUnusedAssets() {
+        List<String> removeSoList = new ArrayList<>();
+        List<String> removeAssetsList = new ArrayList<>();
+        if (!mAppConfig.useTessTwo) {
+            removeSoList.addAll(Arrays.asList("libtess.so", "liblept.so", "libjpgt.so", "libpngt.so"));
+        }
+        if (!mAppConfig.useOpenCv) {
+            removeSoList.add("libopencv_java4.so");
+        }
+        if (!mAppConfig.usePaddleOcr) {
+            removeAssetsList.add("models");
+            removeSoList.add("libNative.so");
+            removeSoList.add("libpaddle_light_api_shared.so");
+        }
+        if (!mAppConfig.useMlKitOcr) {
+            removeAssetsList.add("mlkit-google-ocr-models");
+            removeSoList.add("libmlkit_google_ocr_pipeline.so");
+        }
+        List<String> abiList = Arrays.asList("arm64-v8a", "armeabi-v7a", "x86", "x86_64");
+        for (String removeSo : removeSoList) {
+            for (String abi : abiList) {
+                File soFile = new File(mWorkspacePath + "/lib/" + abi + "/" + removeSo);
+                if (soFile.exists()) {
+                    Log.d(TAG, "removeUnusedAssets: delete lib file:" + soFile.getPath() + " result: " + soFile.delete());
+                }
+            }
+        }
+        for (String removeAsset : removeAssetsList) {
+            File assetFile = new File(mWorkspacePath + "/assets/" + removeAsset);
+            if (assetFile.exists()) {
+                Log.d(TAG, "removeUnusedAssets: delete asset file:" + assetFile.getPath() + " result: " + deleteFolder(assetFile));
+            }
+        }
+    }
+
+    public static boolean deleteFolder(File folder) {
+        if (folder.isDirectory()) {
+            File[] files = folder.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    deleteFolder(file);
+                }
+            }
+        }
+        return folder.delete();
+    }
+
     public ApkBuilder setScriptFile(String path) throws IOException {
         if (PFiles.isDir(path)) {
             copyDir("assets/project/", path);
@@ -193,7 +280,11 @@ public class ApkBuilder {
         File fromDir = new File(path);
         File toDir = new File(mWorkspacePath, relativePath);
         toDir.mkdir();
-        for (File child : fromDir.listFiles()) {
+        File[] subFiles = fromDir.listFiles();
+        if (subFiles == null) {
+            return;
+        }
+        for (File child : subFiles) {
             if (child.isFile()) {
                 if (child.getName().endsWith(".js")) {
                     encrypt(toDir, child);
@@ -279,6 +370,7 @@ public class ApkBuilder {
     }
 
     public ApkBuilder build() throws IOException {
+        removeUnusedAssets();
         if (mProgressCallback != null) {
             GlobalAppContext.post(() -> mProgressCallback.onBuild(ApkBuilder.this));
         }
@@ -333,7 +425,7 @@ public class ApkBuilder {
         if (mProgressCallback != null) {
             GlobalAppContext.post(() -> mProgressCallback.onSign(ApkBuilder.this));
         }
-        try(FileOutputStream fos = new FileOutputStream(mOutApkFile)) {
+        try (FileOutputStream fos = new FileOutputStream(mOutApkFile)) {
             // 替换TinySign的签名打包操作为基础的zip打包
             ZipApkUtil.packageApk(new File(mWorkspacePath), fos);
         }

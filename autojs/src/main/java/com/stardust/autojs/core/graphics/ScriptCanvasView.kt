@@ -116,6 +116,10 @@ class ScriptCanvasView(context: Context, scriptRuntime: ScriptRuntime) : Texture
                             lock.unlock()
                         }
                         drawOnce(scriptCanvas)
+                        if (state.get() == CanvasState.END) {
+                            Log.d(LOG_TAG, "canvas lifecycle end")
+                            break
+                        }
                     }
                 } catch (e: Exception) {
                     Log.e(LOG_TAG, "performDraw: error $e")

@@ -81,6 +81,8 @@ public class TimerThread extends ThreadCompat {
     protected void onExit() {
         try {
             mRuntime.loopers.notifyThreadExit(this);
+        } catch(Exception e) {
+            // 丢弃脚本退出时的异常
         } finally {
             try {
                 LooperHelper.quitForThread(this);
