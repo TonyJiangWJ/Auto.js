@@ -7,7 +7,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.SystemClock
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityWindowInfo
@@ -16,6 +15,7 @@ import com.stardust.app.isOpPermissionGranted
 import com.stardust.autojs.core.util.Shell
 import com.stardust.autojs.engine.ScriptEngineManager
 import com.stardust.view.accessibility.AccessibilityDelegate
+import com.stardust.view.accessibility.AccessibilityService.Companion.instance
 import java.util.regex.Pattern
 
 /**
@@ -37,6 +37,8 @@ class ActivityInfoProvider(private val context: Context, private val scriptEngin
 
     private val checkedPackage: Set<String> = HashSet()
     private val existsPackage: Set<String> = HashSet()
+
+    private val windowIdActivityMap: HashMap<Int, String> = HashMap()
 
     val latestPackage: String
         get() {
@@ -81,21 +83,23 @@ class ActivityInfoProvider(private val context: Context, private val scriptEngin
         get() = AccessibilityDelegate.ALL_EVENT_TYPES
 
     override fun onAccessibilityEvent(service: AccessibilityService, event: AccessibilityEvent): Boolean {
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            if (scriptEngineManager.engines.size == 0) {
-                return false
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                val start: Long = System.currentTimeMillis()
-                val window = service.getWindow(event.windowId)
-                Log.d(LOG_TAG, "get window cost: " + (System.currentTimeMillis() - start) + "ms")
-                if (window?.isFocused != false) {
-                    setLatestComponent(event.packageName, event.className)
-                    return false
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+            && event.className != null) {
+            windowIdActivityMap[event.windowId] = event.className as String
+        }
+        return false
+    }
+
+    fun getPackageAndActivityInfoByA11y() {
+        val start: Long = System.currentTimeMillis()
+        instance?.windows?.forEach { window ->
+            run {
+                if (window?.isFocused != false && window?.root != null) {
+                    setLatestComponent(window.root.packageName, windowIdActivityMap[window.id])
                 }
             }
         }
-        return false
+        Log.d(LOG_TAG, "get window cost: " + (System.currentTimeMillis() - start) + "ms")
     }
 
     fun getLatestPackageByUsageStatsIfGranted(): String {
@@ -112,7 +116,7 @@ class ActivityInfoProvider(private val context: Context, private val scriptEngin
             return
         }
         val latestPackage = matcher.group(1)
-        if (latestPackage.contains(":")) {
+        if (latestPackage == null || latestPackage.contains(":")) {
             return
         }
         val latestActivity = if (matcher.groupCount() >= 2) {

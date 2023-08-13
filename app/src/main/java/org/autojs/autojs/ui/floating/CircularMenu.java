@@ -261,6 +261,7 @@ public class CircularMenu implements Recorder.OnStateChangedListener, LayoutInsp
     @OnClick(R.id.settings)
     void settings() {
         mWindow.collapse();
+        AutoJs.getInstance().getInfoProvider().getPackageAndActivityInfoByA11y();
         mRunningPackage = AutoJs.getInstance().getInfoProvider().getLatestPackageByUsageStatsIfGranted();
         mRunningActivity = AutoJs.getInstance().getInfoProvider().getLatestActivity();
         mSettingsDialog = new OperationDialogBuilder(mContext)
