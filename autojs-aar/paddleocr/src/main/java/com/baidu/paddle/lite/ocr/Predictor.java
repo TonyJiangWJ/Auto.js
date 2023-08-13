@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Vector;
 
 public class Predictor {
     private static final String TAG = Predictor.class.getSimpleName();
@@ -28,7 +27,7 @@ public class Predictor {
     protected OCRPredictorNative paddlePredictor = null;
     protected float inferenceTime = 0;
     // Only for object detection
-    protected Vector<String> wordLabels = new Vector<>();
+    protected List<String> wordLabels = new ArrayList<>();
     protected int detLongSize = 960;
     public float scoreThreshold = 0.1f;
     protected Bitmap inputImage = null;
@@ -214,7 +213,8 @@ public class Predictor {
             }
             assetsInputStream.close();
             String words = new String(lines);
-            String[] contents = words.split("\n");
+            // Windows下换行为\r\n 进行兼容
+            String[] contents = words.split("(\r)?\n");
             wordLabels.addAll(Arrays.asList(contents));
             wordLabels.add(" ");
             Log.i(TAG, "Word label size: " + wordLabels.size());
