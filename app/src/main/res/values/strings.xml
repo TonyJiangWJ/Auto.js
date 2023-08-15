@@ -419,6 +419,7 @@
     <string name="text_upvote">赞</string>
     <string name="text_downvote">踩</string>
     <string name="text_build_delete_tips">打包时可以剔除部分功能的资源包，减少打包体积</string>
+    <string name="text_build_permission_tips">选择打包后所需要使用的权限</string>
     <string name="text_use_opencv">使用OpenCV</string>
     <string name="text_use_paddle_ocr">使用PaddleOCR</string>
     <string name="text_use_ml_kit_ocr">使用ML-KitOCR</string>

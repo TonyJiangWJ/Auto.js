@@ -1,5 +1,7 @@
 package com.stardust.autojs.apkbuilder;
 
+import android.util.Log;
+
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -94,16 +96,28 @@ public class ManifestEditor {
         }
     }
 
+    public boolean filterPermission(String permissionName) {
+        return true;
+    }
 
-    private class MutableAxmlWriter extends AxmlWriter {
-        private class MutableNodeImpl extends AxmlWriter.NodeImpl {
+
+    public class MutableAxmlWriter extends AxmlWriter {
+        public class MutableNodeImpl extends AxmlWriter.NodeImpl {
+            private boolean ignore;
+            private final String name;
 
             MutableNodeImpl(String ns, String name) {
                 super(ns, name);
+                this.name = name;
             }
 
             @Override
             protected void onAttr(AxmlWriter.Attr a) {
+                if ("uses-permission".equals(this.name) && "name".equals(a.name.data) && a.value instanceof StringItem) {
+                    if (ManifestEditor.this.filterPermission(((StringItem) a.value).data)) {
+                        ignore = true;
+                    }
+                }
                 ManifestEditor.this.onAttr(a);
                 super.onAttr(a);
             }
@@ -111,11 +125,15 @@ public class ManifestEditor {
 
             @Override
             public NodeVisitor child(String ns, String name) {
+                Log.d("MutableAxmlWriter", "child: " + ns + " name: " + name);
                 NodeImpl child = new MutableNodeImpl(ns, name);
                 this.children.add(child);
                 return child;
             }
 
+            public boolean isIgnore() {
+                return ignore;
+            }
         }
 
         @Override

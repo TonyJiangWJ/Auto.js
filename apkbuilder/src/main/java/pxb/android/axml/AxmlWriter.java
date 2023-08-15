@@ -15,6 +15,10 @@
  */
 package pxb.android.axml;
 
+import android.util.Log;
+
+import com.stardust.autojs.apkbuilder.ManifestEditor;
+
 import pxb.android.StringItem;
 import pxb.android.StringItems;
 
@@ -31,6 +35,7 @@ import static pxb.android.axml.AxmlParser.*;
  * @author <a href="mailto:pxb1988@gmail.com">Panxiaobo</a>
  */
 public class AxmlWriter extends AxmlVisitor {
+    private static final String TAG = "AxmlWriter";
     static final Comparator<Attr> ATTR_CMP = new Comparator<Attr>() {
 
         @Override
@@ -91,6 +96,12 @@ public class AxmlWriter extends AxmlVisitor {
         int size = 0;
 
         for (NodeImpl first : firsts) {
+            if (first instanceof ManifestEditor.MutableAxmlWriter.MutableNodeImpl) {
+                if (((ManifestEditor.MutableAxmlWriter.MutableNodeImpl)first).isIgnore()) {
+                    Log.d(TAG, "prepare: first is ignore: " + first.name);
+                    continue;
+                }
+            }
             size += first.prepare(this);
         }
         {
@@ -162,6 +173,12 @@ public class AxmlWriter extends AxmlVisitor {
         }
 
         for (NodeImpl first : firsts) {
+            if (first instanceof ManifestEditor.MutableAxmlWriter.MutableNodeImpl) {
+                if (((ManifestEditor.MutableAxmlWriter.MutableNodeImpl)first).isIgnore()) {
+                    Log.d(TAG, "toByteArray: first is ignore: " + first.name);
+                    continue;
+                }
+            }
             first.write(out);
         }
 
@@ -342,6 +359,12 @@ public class AxmlWriter extends AxmlVisitor {
             int size = 24 + 36 + attrs.size() * 20;// 24 for end tag,36+x*20 for
             // start tag
             for (NodeImpl child : children) {
+                if (child instanceof ManifestEditor.MutableAxmlWriter.MutableNodeImpl) {
+                    if (((ManifestEditor.MutableAxmlWriter.MutableNodeImpl)child).isIgnore()) {
+                        Log.d(TAG, "prepare: child is ignore: " + child.name);
+                        continue;
+                    }
+                }
                 size += child.prepare(axmlWriter);
             }
             if (text != null) {
@@ -398,6 +421,12 @@ public class AxmlWriter extends AxmlVisitor {
 
             // children
             for (NodeImpl child : children) {
+                if (child instanceof ManifestEditor.MutableAxmlWriter.MutableNodeImpl) {
+                    if (((ManifestEditor.MutableAxmlWriter.MutableNodeImpl)child).isIgnore()) {
+                        Log.d(TAG, "white: child is ignore: " + child.name);
+                        continue;
+                    }
+                }
                 child.write(out);
             }
 
