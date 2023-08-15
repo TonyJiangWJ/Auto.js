@@ -13,8 +13,6 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import pxb.android.tinysign.TinySign;
-
 /**
  * Created by Stardust on 2017/10/23.
  */
@@ -50,12 +48,6 @@ public class ApkPackager {
                 }
             }
         }
-    }
-
-    public void repackage(String newApkPath) throws Exception {
-        FileOutputStream fos = new FileOutputStream(newApkPath);
-        TinySign.sign(new File(mWorkspacePath), fos);
-        fos.close();
     }
 
     public void cleanWorkspace() {

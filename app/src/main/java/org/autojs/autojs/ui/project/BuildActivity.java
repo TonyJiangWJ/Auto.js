@@ -5,8 +5,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Environment;
-import androidx.annotation.Nullable;
-import androidx.cardview.widget.CardView;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.util.Log;
@@ -40,10 +38,20 @@ import org.autojs.autojs.ui.shortcut.ShortcutIconSelectActivity_;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
+import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -100,6 +108,11 @@ public class BuildActivity extends BaseActivity implements ApkBuilder.ProgressCa
     @ViewById(R.id.use_tess_two)
     CheckBox mUseTessTwo;
 
+    @ViewById(R.id.recycler_view)
+    RecyclerView recyclerView;
+
+    private final List<Option> options = new ArrayList<>();
+
     private ProjectConfig mProjectConfig;
     private MaterialDialog mProgressDialog;
     private String mSource;
@@ -113,11 +126,47 @@ public class BuildActivity extends BaseActivity implements ApkBuilder.ProgressCa
     @AfterViews
     void setupViews() {
         setToolbarAsBack(getString(R.string.text_build_apk));
+        preparePermissionView();
         mSource = getIntent().getStringExtra(EXTRA_SOURCE);
         if (mSource != null) {
             setupWithSourceFile(new ScriptFile(mSource));
         }
         checkApkBuilderPlugin();
+    }
+
+    /**
+     * 构建权限选项列表
+     * Powered by ChatGPT3.5
+     */
+    private void preparePermissionView() {
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        // Populate the options list
+        List<String> permissions = Arrays.asList(
+                "android.permission.ACCESS_WIFI_STATE",
+                "android.permission.ACCESS_NETWORK_STATE",
+                "android.permission.ACCESS_FINE_LOCATION",
+                "android.permission.ACCESS_COARSE_LOCATION",
+                "android.permission.SCHEDULE_EXACT_ALARM",
+                "android.permission.QUERY_ALL_PACKAGES",
+                "android.permission.WRITE_EXTERNAL_STORAGE",
+                "android.permission.MANAGE_EXTERNAL_STORAGE",
+                "android.permission.READ_EXTERNAL_STORAGE",
+                "android.permission.INTERNET",
+                "android.permission.SYSTEM_ALERT_WINDOW",
+                "android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS",
+                "android.permission.RECEIVE_BOOT_COMPLETED",
+                "android.permission.FOREGROUND_SERVICE",
+                "android.permission.RECORD_AUDIO",
+                "android.permission.READ_PHONE_STATE",
+                "com.android.launcher.permission.INSTALL_SHORTCUT",
+                "com.android.launcher.permission.UNINSTALL_SHORTCUT"
+        );
+        Collections.sort(permissions);
+        for (String permission : permissions) {
+            options.add(new Option(permission, false));
+        }
+        OptionAdapter adapter = new OptionAdapter(options);
+        recyclerView.setAdapter(adapter);
     }
 
     private void checkApkBuilderPlugin() {
@@ -279,7 +328,7 @@ public class BuildActivity extends BaseActivity implements ApkBuilder.ProgressCa
     private ApkBuilder.AppConfig createAppConfig() {
         ApkBuilder.AppConfig appConfig = null;
         if (mProjectConfig != null) {
-            appConfig =  ApkBuilder.AppConfig.fromProjectConfig(mSource, mProjectConfig);
+            appConfig = ApkBuilder.AppConfig.fromProjectConfig(mSource, mProjectConfig);
         } else {
             String jsPath = mSourcePath.getText().toString();
             String versionName = mVersionName.getText().toString();
@@ -300,6 +349,13 @@ public class BuildActivity extends BaseActivity implements ApkBuilder.ProgressCa
         appConfig.setUsePaddleOcr(mUsePaddleOcr.isChecked());
         appConfig.setUseMlKitOcr(mUseMlKitOcr.isChecked());
         appConfig.setUseTessTwo(mUseTessTwo.isChecked());
+        Set<String> enabledPermission = new HashSet<>();
+        for (Option option : options) {
+            if (option.isSelected()) {
+                enabledPermission.add(option.getText());
+            }
+        }
+        appConfig.setEnabledPermission(enabledPermission);
         return appConfig;
     }
 

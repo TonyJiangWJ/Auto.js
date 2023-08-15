@@ -29,7 +29,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -74,6 +76,7 @@ public class ApkBuilder {
         Boolean usePaddleOcr = false;
         Boolean useMlKitOcr = false;
         Boolean useTessTwo = false;
+        Set<String> enabledPermission = new HashSet<>();
 
         public static AppConfig fromProjectConfig(String projectDir, ProjectConfig projectConfig) {
             String icon = projectConfig.getIcon();
@@ -182,6 +185,14 @@ public class ApkBuilder {
 
         public void setUseTessTwo(Boolean useTessTwo) {
             this.useTessTwo = useTessTwo;
+        }
+
+        public Set<String> getEnabledPermission() {
+            return enabledPermission;
+        }
+
+        public void setEnabledPermission(Set<String> enabledPermission) {
+            this.enabledPermission = enabledPermission;
         }
     }
 
@@ -550,7 +561,13 @@ public class ApkBuilder {
             } else {
                 super.onAttr(attr);
             }
+        }
 
+        @Override
+        public boolean filterPermission(String permissionName) {
+            Log.d(TAG, "filterPermission: " + permissionName);
+            boolean persist = mAppConfig.getEnabledPermission().contains(permissionName);
+            return !persist;
         }
     }
 }

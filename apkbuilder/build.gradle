@@ -28,7 +28,6 @@ dependencies {
     })
     testImplementation 'junit:junit:4.13.2'
     api fileTree(dir: 'libs', include: ['*.jar'])
-    api files('libs/tiny-sign-0.9.jar') 
     api files('libs/commons-io-2.5.jar')
     implementation "androidx.core:core-ktx:1.8.0"
 }
