@@ -17,7 +17,7 @@ package pxb.android.axml;
 
 import android.util.Log;
 
-import com.stardust.autojs.apkbuilder.ManifestEditor;
+import com.stardust.autojs.apkbuilder.MutableAxmlWriter;
 
 import pxb.android.StringItem;
 import pxb.android.StringItems;
@@ -96,8 +96,8 @@ public class AxmlWriter extends AxmlVisitor {
         int size = 0;
 
         for (NodeImpl first : firsts) {
-            if (first instanceof ManifestEditor.MutableAxmlWriter.MutableNodeImpl) {
-                if (((ManifestEditor.MutableAxmlWriter.MutableNodeImpl)first).isIgnore()) {
+            if (first instanceof MutableAxmlWriter.MutableNodeImpl) {
+                if (((MutableAxmlWriter.MutableNodeImpl)first).isIgnore()) {
                     Log.d(TAG, "prepare: first is ignore: " + first.name);
                     continue;
                 }
@@ -173,8 +173,8 @@ public class AxmlWriter extends AxmlVisitor {
         }
 
         for (NodeImpl first : firsts) {
-            if (first instanceof ManifestEditor.MutableAxmlWriter.MutableNodeImpl) {
-                if (((ManifestEditor.MutableAxmlWriter.MutableNodeImpl)first).isIgnore()) {
+            if (first instanceof MutableAxmlWriter.MutableNodeImpl) {
+                if (((MutableAxmlWriter.MutableNodeImpl)first).isIgnore()) {
                     Log.d(TAG, "toByteArray: first is ignore: " + first.name);
                     continue;
                 }
@@ -359,8 +359,8 @@ public class AxmlWriter extends AxmlVisitor {
             int size = 24 + 36 + attrs.size() * 20;// 24 for end tag,36+x*20 for
             // start tag
             for (NodeImpl child : children) {
-                if (child instanceof ManifestEditor.MutableAxmlWriter.MutableNodeImpl) {
-                    if (((ManifestEditor.MutableAxmlWriter.MutableNodeImpl)child).isIgnore()) {
+                if (child instanceof MutableAxmlWriter.MutableNodeImpl) {
+                    if (((MutableAxmlWriter.MutableNodeImpl)child).isIgnore()) {
                         Log.d(TAG, "prepare: child is ignore: " + child.name);
                         continue;
                     }
@@ -421,8 +421,8 @@ public class AxmlWriter extends AxmlVisitor {
 
             // children
             for (NodeImpl child : children) {
-                if (child instanceof ManifestEditor.MutableAxmlWriter.MutableNodeImpl) {
-                    if (((ManifestEditor.MutableAxmlWriter.MutableNodeImpl)child).isIgnore()) {
+                if (child instanceof MutableAxmlWriter.MutableNodeImpl) {
+                    if (((MutableAxmlWriter.MutableNodeImpl)child).isIgnore()) {
                         Log.d(TAG, "white: child is ignore: " + child.name);
                         continue;
                     }

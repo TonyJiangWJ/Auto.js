@@ -1,7 +1,5 @@
 package com.stardust.autojs.apkbuilder;
 
-import android.util.Log;
-
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -11,7 +9,6 @@ import java.io.OutputStream;
 import pxb.android.StringItem;
 import pxb.android.axml.AxmlReader;
 import pxb.android.axml.AxmlWriter;
-import pxb.android.axml.NodeVisitor;
 
 /**
  * Created by Stardust on 2017/10/23.
@@ -55,7 +52,7 @@ public class ManifestEditor {
 
     public ManifestEditor commit() throws IOException {
         try {
-            AxmlWriter writer = new MutableAxmlWriter();
+            AxmlWriter writer = new MutableAxmlWriter(this);
             AxmlReader reader = new AxmlReader(IOUtils.readFully(mManifestInputStream, mManifestInputStream.available()));
             reader.accept(writer);
             mManifestData = writer.toByteArray();
@@ -98,50 +95,6 @@ public class ManifestEditor {
 
     public boolean filterPermission(String permissionName) {
         return true;
-    }
-
-
-    public class MutableAxmlWriter extends AxmlWriter {
-        public class MutableNodeImpl extends AxmlWriter.NodeImpl {
-            private boolean ignore;
-            private final String name;
-
-            MutableNodeImpl(String ns, String name) {
-                super(ns, name);
-                this.name = name;
-            }
-
-            @Override
-            protected void onAttr(AxmlWriter.Attr a) {
-                if ("uses-permission".equals(this.name) && "name".equals(a.name.data) && a.value instanceof StringItem) {
-                    if (ManifestEditor.this.filterPermission(((StringItem) a.value).data)) {
-                        ignore = true;
-                    }
-                }
-                ManifestEditor.this.onAttr(a);
-                super.onAttr(a);
-            }
-
-
-            @Override
-            public NodeVisitor child(String ns, String name) {
-                Log.d("MutableAxmlWriter", "child: " + ns + " name: " + name);
-                NodeImpl child = new MutableNodeImpl(ns, name);
-                this.children.add(child);
-                return child;
-            }
-
-            public boolean isIgnore() {
-                return ignore;
-            }
-        }
-
-        @Override
-        public NodeVisitor child(String ns, String name) {
-            NodeImpl first = new MutableNodeImpl(ns, name);
-            this.firsts.add(first);
-            return first;
-        }
     }
 
 

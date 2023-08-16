@@ -14,21 +14,17 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 /**
+ * 负责将内置apk解压到指定目录
+ *
  * Created by Stardust on 2017/10/23.
  */
+public class ApkUnpackUtil {
 
-public class ApkPackager {
+    private final InputStream mApkInputStream;
+    private final String mWorkspacePath;
 
-    private InputStream mApkInputStream;
-    private String mWorkspacePath;
-
-    public ApkPackager(InputStream apkInputStream, String workspacePath) {
+    public ApkUnpackUtil(InputStream apkInputStream, String workspacePath) {
         mApkInputStream = apkInputStream;
-        mWorkspacePath = workspacePath;
-    }
-
-    public ApkPackager(String apkPath, String workspacePath) throws FileNotFoundException {
-        mApkInputStream = new FileInputStream(apkPath);
         mWorkspacePath = workspacePath;
     }
 
@@ -39,19 +35,15 @@ public class ApkPackager {
                 if (!e.isDirectory() && !TextUtils.isEmpty(name)) {
                     File file = new File(mWorkspacePath, name);
                     System.out.println(file);
-                    file.getParentFile().mkdirs();
-                    FileOutputStream fos = new FileOutputStream(file);
-                    StreamUtils.write(zis, fos);
-                    fos.close();
+                    if (file.getParentFile() != null && file.getParentFile().mkdirs()) {
+                        try (FileOutputStream fos = new FileOutputStream(file)) {
+                            StreamUtils.write(zis, fos);
+                        }
+                    }
                 } else {
                     System.out.println("file or empty：" + name);
                 }
             }
         }
     }
-
-    public void cleanWorkspace() {
-
-    }
-
 }

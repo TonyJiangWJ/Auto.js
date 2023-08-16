@@ -8,7 +8,7 @@ import com.android.apksig.ApkSigner;
 import com.android.apksigner.PasswordRetriever;
 import com.android.apksigner.SignerParams;
 import com.stardust.app.GlobalAppContext;
-import com.stardust.autojs.apkbuilder.ApkPackager;
+import com.stardust.autojs.apkbuilder.ApkUnpackUtil;
 import com.stardust.autojs.apkbuilder.ManifestEditor;
 import com.stardust.autojs.apkbuilder.util.StreamUtils;
 import com.stardust.autojs.project.BuildInfo;
@@ -197,7 +197,7 @@ public class ApkBuilder {
     }
 
     private ProgressCallback mProgressCallback;
-    private ApkPackager mApkPackager;
+    private ApkUnpackUtil mApkUnpackUtil;
     private String mArscPackageName;
     private ManifestEditor mManifestEditor;
     private String mWorkspacePath;
@@ -210,7 +210,7 @@ public class ApkBuilder {
     public ApkBuilder(InputStream apkInputStream, File outApkFile, String workspacePath) {
         mWorkspacePath = workspacePath;
         mOutApkFile = outApkFile;
-        mApkPackager = new ApkPackager(apkInputStream, mWorkspacePath);
+        mApkUnpackUtil = new ApkUnpackUtil(apkInputStream, mWorkspacePath);
         PFiles.ensureDir(outApkFile.getPath());
     }
 
@@ -224,7 +224,7 @@ public class ApkBuilder {
             GlobalAppContext.post(() -> mProgressCallback.onPrepare(ApkBuilder.this));
         }
         (new File(mWorkspacePath)).mkdirs();
-        mApkPackager.unzip();
+        mApkUnpackUtil.unzip();
         return this;
     }
 
