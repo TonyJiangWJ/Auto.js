@@ -50,11 +50,11 @@ def archives = [
 //    ],
 ]
 /**
- * 下载opencv4.5.5源码包 默认为4.2.0 和 AutoJS中的版本不匹配会产生冲突 这里进行修改
+ * 下载opencv4.8.0源码包 默认为4.2.0 和 AutoJS中的版本不匹配会产生冲突 这里进行修改
  */
 def zipArchives = [
     [
-        'src' : 'https://github.com/opencv/opencv/releases/download/4.5.5/opencv-4.5.5-android-sdk.zip',
+        'src' : 'https://github.com/opencv/opencv/releases/download/4.8.0/opencv-4.8.0-android-sdk.zip',
         'dest': 'OpenCV'
     ]
 ]

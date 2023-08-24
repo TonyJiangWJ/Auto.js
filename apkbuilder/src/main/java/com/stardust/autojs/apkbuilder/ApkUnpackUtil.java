@@ -35,9 +35,18 @@ public class ApkUnpackUtil {
                 if (!e.isDirectory() && !TextUtils.isEmpty(name)) {
                     File file = new File(mWorkspacePath, name);
                     System.out.println(file);
-                    if (file.getParentFile() != null && file.getParentFile().mkdirs()) {
+                    File parentFile = file.getParentFile();
+                    if (parentFile != null && (parentFile.exists() || parentFile.mkdirs())) {
                         try (FileOutputStream fos = new FileOutputStream(file)) {
+                            System.out.println(file.getName() + " has been written");
                             StreamUtils.write(zis, fos);
+                        }
+                    } else {
+                        System.out.println(file.getName() + " can not write");
+                        System.out.println("is parent null? " + (parentFile != null));
+                        if (file.getParentFile() != null) {
+                            System.out.println("is parent exists? " + parentFile.exists());
+                            System.out.println("can parent mkdirs? " + parentFile.mkdirs());
                         }
                     }
                 } else {

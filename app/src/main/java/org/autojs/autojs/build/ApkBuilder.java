@@ -76,6 +76,7 @@ public class ApkBuilder {
         Boolean usePaddleOcr = false;
         Boolean useMlKitOcr = false;
         Boolean useTessTwo = false;
+        Boolean useOnnx = false;
         Set<String> enabledPermission = new HashSet<>();
 
         public static AppConfig fromProjectConfig(String projectDir, ProjectConfig projectConfig) {
@@ -187,6 +188,14 @@ public class ApkBuilder {
             this.useTessTwo = useTessTwo;
         }
 
+        public Boolean getUseOnnx() {
+            return useOnnx;
+        }
+
+        public void setUseOnnx(Boolean useOnnx) {
+            this.useOnnx = useOnnx;
+        }
+
         public Set<String> getEnabledPermission() {
             return enabledPermission;
         }
@@ -236,6 +245,9 @@ public class ApkBuilder {
         List<String> removeAssetsList = new ArrayList<>();
         if (!mAppConfig.useTessTwo) {
             removeSoList.addAll(Arrays.asList("libtess.so", "liblept.so", "libjpgt.so", "libpngt.so"));
+        }
+        if (!mAppConfig.useOnnx) {
+            removeSoList.addAll(Arrays.asList("libonnxruntime.so", "libonnxruntime4j_jni.so"));
         }
         if (!mAppConfig.useOpenCv) {
             removeSoList.add("libopencv_java4.so");

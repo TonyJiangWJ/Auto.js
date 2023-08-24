@@ -13,11 +13,14 @@ android {
     buildToolsVersion versions.buildTool
 
     signingConfigs {
-        release {
-            storeFile file(homePath + '/auto-js-t-pkcs12.jks')
-            storePassword storePasswd
-            keyPassword keyPasswd
-            keyAlias = alias
+        if (file(homePath + '/auto-js-t-pkcs12.jks').exists()) {
+            signSupport = true
+            release {
+                storeFile file(homePath + '/auto-js-t-pkcs12.jks')
+                storePassword storePasswd
+                keyPassword keyPasswd
+                keyAlias = alias
+            }
         }
     }
     defaultConfig {
