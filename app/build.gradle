@@ -11,15 +11,18 @@ def homePath = System.properties['user.home']
 def storePasswd = System.getenv('autojspasswd')
 def keyPasswd = System.getenv('autojspasswd')
 def alias = System.getenv('autojsalias')
-
+def signSupport = false
 
 android {
     signingConfigs {
-        release {
-            storeFile file(homePath + '/auto-js-t-pkcs12.jks')
-            storePassword storePasswd
-            keyPassword keyPasswd
-            keyAlias = alias
+        if (file(homePath + '/auto-js-t-pkcs12.jks').exists()) {
+            signSupport = true
+            release {
+                storeFile file(homePath + '/auto-js-t-pkcs12.jks')
+                storePassword storePasswd
+                keyPassword keyPasswd
+                keyAlias = alias
+            }
         }
         debug {
             storeFile file('debug/autojs-pkcs12-debug.jks')
@@ -60,8 +63,13 @@ android {
             shrinkResources false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
-            applicationIdSuffix ".x"
+            applicationIdSuffix ".modify"
+        }
+        if (signSupport) {
+            println('sign support')
+            release.signingConfig = signingConfigs.release
+        } else {
+            println('sign is not support')
         }
     }
     compileOptions {
