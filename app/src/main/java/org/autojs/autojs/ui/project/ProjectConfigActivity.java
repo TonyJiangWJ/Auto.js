@@ -195,7 +195,7 @@ public class ProjectConfigActivity extends BaseActivity {
     @Click(R.id.icon)
     void selectIcon() {
         ShortcutIconSelectActivity_.intent(this)
-                .flags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .flags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
                 .startForResult(REQUEST_CODE);
     }
 
@@ -249,6 +249,7 @@ public class ProjectConfigActivity extends BaseActivity {
     @SuppressLint("CheckResult")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_OK) {
             return;
         }

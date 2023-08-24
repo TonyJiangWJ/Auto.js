@@ -15,6 +15,7 @@ android {
 
     signingConfigs {
         if (file(homePath + '/auto-js-t-pkcs12.jks').exists()) {
+            signSupport = true
             release {
                 storeFile file(homePath + '/auto-js-t-pkcs12.jks')
                 storePassword storePasswd

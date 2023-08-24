@@ -108,6 +108,9 @@ public class BuildActivity extends BaseActivity implements ApkBuilder.ProgressCa
     @ViewById(R.id.use_tess_two)
     CheckBox mUseTessTwo;
 
+    @ViewById(R.id.use_onnx_runtime)
+    CheckBox mUseOnnx;
+
     @ViewById(R.id.recycler_view)
     RecyclerView recyclerView;
 
@@ -202,6 +205,7 @@ public class BuildActivity extends BaseActivity implements ApkBuilder.ProgressCa
                 "https://i.autojs.org/autojs/plugin/%d.apk", ApkBuilderPluginHelper.getSuitablePluginVersion()));
     }
 
+    @SuppressLint("StringFormatInvalid")
     private void setupWithSourceFile(ScriptFile file) {
         String dir = file.getParent();
         if (dir.startsWith(getFilesDir().getPath())) {
@@ -349,6 +353,7 @@ public class BuildActivity extends BaseActivity implements ApkBuilder.ProgressCa
         appConfig.setUsePaddleOcr(mUsePaddleOcr.isChecked());
         appConfig.setUseMlKitOcr(mUseMlKitOcr.isChecked());
         appConfig.setUseTessTwo(mUseTessTwo.isChecked());
+        appConfig.setUseOnnx(mUseOnnx.isChecked());
         Set<String> enabledPermission = new HashSet<>();
         for (Option option : options) {
             if (option.isSelected()) {
@@ -387,6 +392,7 @@ public class BuildActivity extends BaseActivity implements ApkBuilder.ProgressCa
         Log.e(LOG_TAG, "Build failed", error);
     }
 
+    @SuppressLint("StringFormatInvalid")
     private void onBuildSuccessful(File outApk) {
         mProgressDialog.dismiss();
         mProgressDialog = null;

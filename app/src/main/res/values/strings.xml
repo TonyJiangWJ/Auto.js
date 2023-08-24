@@ -423,6 +423,7 @@
     <string name="text_use_opencv">使用OpenCV</string>
     <string name="text_use_paddle_ocr">使用PaddleOCR</string>
     <string name="text_use_ml_kit_ocr">使用ML-KitOCR</string>
+    <string name="text_use_onnx_runtime">使用OnnxRuntime</string>
     <string name="text_use_tess_two">使用TessTwoOCR</string>
     <plurals name="air_error_short_description" key="air_error_short_description">
         <item quantity="one">描述至少要 %d 个字.</item>
