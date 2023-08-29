@@ -8,6 +8,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,7 +65,14 @@ public class Predictor {
      */
     private final String defaultModelPathSlim = "models/ocr_v3_for_cpu(slim)";
 
+    /**
+     * 初始化时校验模型是否加载正确
+     */
     private int retryTime = 1;
+    /**
+     * 初始化尝试次数
+     */
+    private int initRetryTime = 1;
 
     public Predictor() {
     }
@@ -92,7 +100,11 @@ public class Predictor {
         }
         isLoaded = loadLabel(appCtx, labelPath);
         if (!checkModelLoadedSuccess()) {
-            init(appCtx, modelPath, labelPath);
+            if (initRetryTime++ < 3) {
+                return init(appCtx, modelPath, labelPath);
+            } else {
+                return false;
+            }
         }
         return isLoaded;
     }
@@ -204,14 +216,19 @@ public class Predictor {
         wordLabels.add("black");
         // Load word labels from file
         try {
-            InputStream assetsInputStream = appCtx.getAssets().open(labelPath);
-            int available = assetsInputStream.available();
+            InputStream labelInputStream = null;
+            if (labelPath.startsWith("/")) {
+                labelInputStream = new FileInputStream(labelPath);
+            } else {
+                labelInputStream = appCtx.getAssets().open(labelPath);
+            }
+            int available = labelInputStream.available();
             byte[] lines = new byte[available];
-            if (assetsInputStream.read(lines) <= 0) {
+            if (labelInputStream.read(lines) <= 0) {
                 Log.e(TAG, "读取label失败");
                 return false;
             }
-            assetsInputStream.close();
+            labelInputStream.close();
             String words = new String(lines);
             // Windows下换行为\r\n 进行兼容
             String[] contents = words.split("(\r)?\n");
@@ -219,7 +236,7 @@ public class Predictor {
             wordLabels.add(" ");
             Log.i(TAG, "Word label size: " + wordLabels.size());
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage(), e);
             return false;
         }
         return true;
