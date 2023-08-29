@@ -60,7 +60,7 @@ public class AccessibilityServiceTool {
             "settings put secure enabled_accessibility_services $enabled\n" +
             "fi\n" +
             "settings put secure accessibility_enabled 1";
-    private static final Pattern SERVICE_PATTERN = Pattern.compile("^(((\\w+\\.)+\\w+)[/]?){2}$");
+    private static final Pattern SERVICE_PATTERN = Pattern.compile("^(\\w+\\.?)+/((\\w+.)|(\\.\\w+))+$");
 
     public static boolean enableAccessibilityServiceByRoot() {
         return enableAccessibilityServiceByRoot(sAccessibilityServiceClass);
@@ -108,21 +108,14 @@ public class AccessibilityServiceTool {
      */
     public static boolean enableAccessibilityServiceByAdb(Class<? extends android.accessibilityservice.AccessibilityService> accessibilityService) {
         try {
-            String enabledServices = Settings.Secure.getString(GlobalAppContext.get().getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+            String enabledServices = Settings.Secure.getString(GlobalAppContext.get().getContentResolver(),
+                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
             String requiredService = BuildConfig.APPLICATION_ID + "/" + accessibilityService.getName();
             String services = enabledServices + ":" + requiredService;
-            String[] serviceInfo = services.split(":");
-            StringBuilder sb = new StringBuilder();
-            for (String service : serviceInfo) {
-                if (SERVICE_PATTERN.matcher(service).find()) {
-                    sb.append(service).append(":");
-                }
-            }
-            if (sb.length() > 0) {
-                sb.deleteCharAt(sb.length() - 1);
-            }
-            Settings.Secure.putString(GlobalAppContext.get().getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, sb.toString());
-            Settings.Secure.putString(GlobalAppContext.get().getContentResolver(), Settings.Secure.ACCESSIBILITY_ENABLED, "1");
+            Settings.Secure.putString(GlobalAppContext.get().getContentResolver(),
+                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, resolveAccessibilityString(services));
+            Settings.Secure.putString(GlobalAppContext.get().getContentResolver(),
+                    Settings.Secure.ACCESSIBILITY_ENABLED, "1");
             return true;
         } catch (Exception e) {
             return false;
@@ -135,25 +128,32 @@ public class AccessibilityServiceTool {
 
     public static boolean disableAccessibilityServiceByAdb(Class<? extends android.accessibilityservice.AccessibilityService> accessibilityService) {
         try {
-            String enabledServices = Settings.Secure.getString(GlobalAppContext.get().getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+            String enabledServices = Settings.Secure.getString(GlobalAppContext.get().getContentResolver(),
+                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
             String requiredService = BuildConfig.APPLICATION_ID + "/" + accessibilityService.getName();
             String services = enabledServices.replace(requiredService, "");
-            String[] serviceInfo = services.split(":");
-            StringBuilder sb = new StringBuilder();
-            for (String service : serviceInfo) {
-                if (SERVICE_PATTERN.matcher(service).find()) {
-                    sb.append(service).append(":");
-                }
-            }
-            if (sb.length() > 0) {
-                sb.deleteCharAt(sb.length() - 1);
-            }
-            Settings.Secure.putString(GlobalAppContext.get().getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, sb.toString());
+            Settings.Secure.putString(GlobalAppContext.get().getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+                    resolveAccessibilityString(services));
             Settings.Secure.putString(GlobalAppContext.get().getContentResolver(), Settings.Secure.ACCESSIBILITY_ENABLED, "1");
             return true;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private static String resolveAccessibilityString(String enabledServices) {
+        String[] serviceInfo = enabledServices.split(":");
+        StringBuilder sb = new StringBuilder();
+        for (String service : serviceInfo) {
+            // 验证名称是否符合规则，其实有点不必要，判断非空也行
+            if (SERVICE_PATTERN.matcher(service).find()) {
+                sb.append(service).append(":");
+            }
+        }
+        if (sb.length() > 0) {
+            sb.deleteCharAt(sb.length() - 1);
+        }
+        return sb.toString();
     }
 
     public static boolean isAccessibilityServiceEnabled(Context context) {

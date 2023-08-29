@@ -21,6 +21,7 @@ import com.stardust.autojs.runtime.api.Device
 import com.stardust.theme.ThemeColor
 import com.tencent.bugly.Bugly
 import com.tencent.bugly.crashreport.CrashReport
+import org.apache.commons.lang3.StringUtils
 import org.autojs.autojs.BuildConfig
 import org.autojs.autojs.Pref
 import org.autojs.autojs.R
@@ -33,7 +34,6 @@ import org.autojs.autojs.timing.TimedTaskScheduler
 import org.autojs.autojs.tool.CrashHandler
 import org.autojs.autojs.ui.error.ErrorReportActivity
 import java.lang.ref.WeakReference
-import java.util.*
 
 /**
  * Created by Stardust on 2017/1/27.
@@ -53,25 +53,29 @@ class App : MultiDexApplication() {
     }
 
     private fun setUpStaticsTool() {
-        if (BuildConfig.DEBUG)
+        if (BuildConfig.DEBUG || StringUtils.isEmpty(BuildConfig.FLURRY_APP_ID))
             return
         FlurryAgent.Builder()
-                .withLogEnabled(BuildConfig.DEBUG)
-                .build(this, "V5B5VT5NP6TT5F78PZXR")
+            .withLogEnabled(BuildConfig.DEBUG)
+            .build(this, BuildConfig.FLURRY_APP_ID)
     }
 
     @SuppressLint("HardwareIds")
     private fun setUpDebugEnvironment() {
+        if (StringUtils.isEmpty(BuildConfig.BUGLY_APP_ID)) {
+            return
+        }
         Bugly.isDev = BuildConfig.DEBUG
         val crashHandler = CrashHandler(ErrorReportActivity::class.java)
 
         val strategy = CrashReport.UserStrategy(applicationContext)
         strategy.setCrashHandleCallback(crashHandler)
         strategy.deviceModel = Device.model
-        strategy.deviceID = Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID)
+        strategy.deviceID =
+            Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID)
         CrashReport.setIsDevelopmentDevice(this, BuildConfig.DEBUG)
 
-        CrashReport.initCrashReport(applicationContext, BUGLY_APP_ID, false, strategy)
+        CrashReport.initCrashReport(applicationContext, BuildConfig.BUGLY_APP_ID, false, strategy)
 
         crashHandler.setBuglyHandler(Thread.getDefaultUncaughtExceptionHandler())
         Thread.setDefaultUncaughtExceptionHandler(crashHandler)
@@ -79,7 +83,14 @@ class App : MultiDexApplication() {
     }
 
     private fun init() {
-        ThemeColorManagerCompat.init(this, ThemeColor(resources.getColor(R.color.colorPrimary), resources.getColor(R.color.colorPrimaryDark), resources.getColor(R.color.colorAccent)))
+        ThemeColorManagerCompat.init(
+            this,
+            ThemeColor(
+                resources.getColor(R.color.colorPrimary),
+                resources.getColor(R.color.colorPrimaryDark),
+                resources.getColor(R.color.colorAccent)
+            )
+        )
         AutoJs.initInstance(this)
         if (Pref.isRunningVolumeControlEnabled()) {
             GlobalKeyObserver.init()
@@ -95,25 +106,27 @@ class App : MultiDexApplication() {
         val localActions = ArrayList<String>()
         val actions = ArrayList<String>()
         TimedTaskManager.getInstance().allIntentTasks
-                .filter { task -> task.action != null }
-                .doOnComplete {
-                    if (localActions.isNotEmpty()) {
-                        dynamicBroadcastReceivers.register(localActions, true)
-                    }
-                    if (actions.isNotEmpty()) {
-                        dynamicBroadcastReceivers.register(actions, false)
-                    }
-                    LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent(
-                            DynamicBroadcastReceivers.ACTION_STARTUP
-                    ))
+            .filter { task -> task.action != null }
+            .doOnComplete {
+                if (localActions.isNotEmpty()) {
+                    dynamicBroadcastReceivers.register(localActions, true)
                 }
-                .subscribe({
-                    if (it.isLocal) {
-                        localActions.add(it.action)
-                    } else {
-                        actions.add(it.action)
-                    }
-                }, { it.printStackTrace() })
+                if (actions.isNotEmpty()) {
+                    dynamicBroadcastReceivers.register(actions, false)
+                }
+                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(
+                    Intent(
+                        DynamicBroadcastReceivers.ACTION_STARTUP
+                    )
+                )
+            }
+            .subscribe({
+                if (it.isLocal) {
+                    localActions.add(it.action)
+                } else {
+                    actions.add(it.action)
+                }
+            }, { it.printStackTrace() })
 
 
     }
@@ -122,43 +135,56 @@ class App : MultiDexApplication() {
         Drawables.setDefaultImageLoader(object : ImageLoader {
             override fun loadInto(imageView: ImageView, uri: Uri) {
                 Glide.with(imageView)
-                        .load(uri)
-                        .into(imageView)
+                    .load(uri)
+                    .into(imageView)
             }
 
             override fun loadIntoBackground(view: View, uri: Uri) {
                 Glide.with(view)
-                        .load(uri)
-                        .into(object : SimpleTarget<Drawable>() {
-                            override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
-                                view.background = resource
-                            }
-                        })
+                    .load(uri)
+                    .into(object : SimpleTarget<Drawable>() {
+                        override fun onResourceReady(
+                            resource: Drawable,
+                            transition: Transition<in Drawable>?
+                        ) {
+                            view.background = resource
+                        }
+                    })
             }
 
             override fun load(view: View, uri: Uri): Drawable {
                 throw UnsupportedOperationException()
             }
 
-            override fun load(view: View, uri: Uri, drawableCallback: ImageLoader.DrawableCallback) {
+            override fun load(
+                view: View,
+                uri: Uri,
+                drawableCallback: ImageLoader.DrawableCallback
+            ) {
                 Glide.with(view)
-                        .load(uri)
-                        .into(object : SimpleTarget<Drawable>() {
-                            override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
-                                drawableCallback.onLoaded(resource)
-                            }
-                        })
+                    .load(uri)
+                    .into(object : SimpleTarget<Drawable>() {
+                        override fun onResourceReady(
+                            resource: Drawable,
+                            transition: Transition<in Drawable>?
+                        ) {
+                            drawableCallback.onLoaded(resource)
+                        }
+                    })
             }
 
             override fun load(view: View, uri: Uri, bitmapCallback: ImageLoader.BitmapCallback) {
                 Glide.with(view)
-                        .asBitmap()
-                        .load(uri)
-                        .into(object : SimpleTarget<Bitmap>() {
-                            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                                bitmapCallback.onLoaded(resource)
-                            }
-                        })
+                    .asBitmap()
+                    .load(uri)
+                    .into(object : SimpleTarget<Bitmap>() {
+                        override fun onResourceReady(
+                            resource: Bitmap,
+                            transition: Transition<in Bitmap>?
+                        ) {
+                            bitmapCallback.onLoaded(resource)
+                        }
+                    })
             }
         })
     }
@@ -166,7 +192,6 @@ class App : MultiDexApplication() {
     companion object {
 
         private val TAG = "App"
-        private val BUGLY_APP_ID = "e020acad30"
 
         private lateinit var instance: WeakReference<App>
 
