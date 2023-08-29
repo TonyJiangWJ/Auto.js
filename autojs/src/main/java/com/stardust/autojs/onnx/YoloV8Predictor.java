@@ -34,6 +34,7 @@ import androidx.annotation.RequiresApi;
 /**
  * @author TonyJiangWJ
  * @since 2023/8/20
+ * transfer from https://gitee.com/agricultureiot/yolo-onnx-java
  */
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class YoloV8Predictor {

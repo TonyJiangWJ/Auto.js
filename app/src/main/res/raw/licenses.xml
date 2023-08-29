@@ -107,4 +107,16 @@
         <url>https://github.com/paddlepaddle/paddle</url>
         <license>Apache Software License 2.0</license>
     </notice>
+    <notice>
+        <name>onnxruntime</name>
+        <copyright>Copyright (c) Microsoft Corporation</copyright>
+        <url>https://github.com/microsoft/onnxruntime</url>
+        <license>MIT License</license>
+    </notice>
+    <notice>
+        <name>yolo-onnx-java</name>
+        <copyright>Copyright (c) 2023 agricultureiot</copyright>
+        <url>https://gitee.com/agricultureiot/yolo-onnx-java</url>
+        <license>Apache Software License 2.0</license>
+    </notice>
 </notices>

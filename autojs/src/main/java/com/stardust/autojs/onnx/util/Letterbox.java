@@ -8,6 +8,7 @@ import org.opencv.imgproc.Imgproc;
 /**
  * @author TonyJiangWJ
  * @since 2023/8/20
+ * transfer from https://gitee.com/agricultureiot/yolo-onnx-java
  */
 public class Letterbox {
 
@@ -60,9 +61,9 @@ public class Letterbox {
             r = Math.min(r, 1.0);
         }
         // Compute padding
-        Size newUnpad = new Size(Math.round(shape[1] * r), Math.round(shape[0] * r));
+        Size newUnPad = new Size(Math.round(shape[1] * r), Math.round(shape[0] * r));
         // wh 填充
-        double dw = this.newShape.width - newUnpad.width, dh = this.newShape.height - newUnpad.height;
+        double dw = this.newShape.width - newUnPad.width, dh = this.newShape.height - newUnPad.height;
         // 最小矩形
         if (this.auto) {
             dw = dw % this.stride;
@@ -72,8 +73,8 @@ public class Letterbox {
         dw /= 2;
         dh /= 2;
         // resize
-        if (shape[1] != newUnpad.width || shape[0] != newUnpad.height) {
-            Imgproc.resize(im, im, newUnpad, 0, 0, Imgproc.INTER_LINEAR);
+        if (shape[1] != newUnPad.width || shape[0] != newUnPad.height) {
+            Imgproc.resize(im, im, newUnPad, 0, 0, Imgproc.INTER_LINEAR);
         }
         int top = (int) Math.round(dh - 0.1), bottom = (int) Math.round(dh + 0.1);
         int left = (int) Math.round(dw - 0.1), right = (int) Math.round(dw + 0.1);
