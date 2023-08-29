@@ -10,6 +10,8 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -94,6 +96,7 @@ public class Predictor {
     }
 
     public boolean init(Context appCtx, String modelPath, String labelPath) {
+        Log.d(TAG, "init whit model: " + modelPath + " label: " + labelPath);
         isLoaded = loadModel(appCtx, modelPath, cpuThreadNum, cpuPowerMode);
         if (!isLoaded) {
             return false;
@@ -170,7 +173,7 @@ public class Predictor {
             // otherwise copy model to cache from assets
             realPath = appCtx.getCacheDir() + "/" + modelPath;
             // region add by TonyJiangWJ
-            String key = "PADDLE_MODEL_LOADED";
+            String key = "PADDLE_MODEL_LOADED" + md5(modelPath);
             // 进行了模型更新 需要强制覆盖旧模型
             boolean loaded = PreferenceManager.getDefaultSharedPreferences(appCtx).getBoolean(key, false);
             if (loaded) {
@@ -199,6 +202,18 @@ public class Predictor {
         this.modelPath = realPath;
         this.modelName = realPath.substring(realPath.lastIndexOf("/") + 1);
         return true;
+    }
+
+    public static String md5(String text) {
+        MessageDigest md;
+        byte[] bytesOfMessage = text.getBytes();
+        try {
+            md = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        byte[] thedigest = md.digest(bytesOfMessage);
+        return Base64.encodeToString(thedigest, Base64.DEFAULT);
     }
 
     public void releaseModel() {
