@@ -7,16 +7,20 @@ module.exports = function(runtime, global) {
     let modelPath = files.path(options.modelPath);
     let labelPath = files.path(options.labelPath);
     let scoreThreshold = options.threshold || 0.1;
-    $ocr.setScoreThreshold(scoreThreshold);
+    javaOcr.setScoreThreshold(scoreThreshold);
     if (files.exists(modelPath) && files.exists(labelPath)) {
       let detName = options.detFileName;
       let recName = options.recFileName;
       let clsName = options.clsFileName;
       if (detName && recName && clsName) {
-        return $ocr.initWithSpecificModels(modelPath, labelPath, detName, recName, clsName);
+        return javaOcr.initWithSpecificModels(modelPath, labelPath, detName, recName, clsName);
       } else {
-        return $ocr.initWithCustomModel(modelPath, labelPath);
+        return javaOcr.initWithCustomModel(modelPath, labelPath);
       }
+    }
+    if (options.useV4) {
+        // 使用v4模型
+        return javaOcr.initWithCustomModel('models/ocr_v4_for_cpu', 'labels/ppocr_keys_v1.txt')
     }
     // 使用默认模型
     return true;

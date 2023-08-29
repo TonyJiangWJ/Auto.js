@@ -95,7 +95,7 @@ public class OCR {
         if (bitmap == null || bitmap.isRecycled()) {
             return Collections.emptyList();
         }
-        if (mPredictor.cpuThreadNum != cpuThreadNum) {
+        if (mPredictor.cpuThreadNum != cpuThreadNum && !useCustomModel) {
             mPredictor.releaseModel();
             mPredictor.cpuThreadNum = cpuThreadNum;
         }

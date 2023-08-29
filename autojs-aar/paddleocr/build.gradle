@@ -39,13 +39,17 @@ dependencies {
     implementation project(path: ':autojs-aar:opencv')
 }
 
+/**
+ * Paddle-Lite包 开发时使用 比如后续更新版本 用于下载新的包
+ * 20230829 更新到v2.13-rc
+ */
 def archives = [
 //    [
-//        'src' : 'https://github.com/PaddlePaddle/Paddle-Lite/releases/download/v2.11/inference_lite_lib.android.armv8.clang.c++_shared.with_extra.with_cv.tar.gz',
+//        'src' : 'https://github.com/PaddlePaddle/Paddle-Lite/releases/download/v2.13-rc/inference_lite_lib.android.armv8.clang.c++_shared.with_extra.with_cv.tar.gz',
 //        'dest': 'PaddleLiteArmv8'
 //    ],
 //    [
-//        'src' : 'https://github.com/PaddlePaddle/Paddle-Lite/releases/download/v2.11/inference_lite_lib.android.armv7.clang.c++_shared.with_extra.with_cv.tar.gz',
+//        'src' : 'https://github.com/PaddlePaddle/Paddle-Lite/releases/download/v2.13-rc/inference_lite_lib.android.armv7.clang.c++_shared.with_extra.with_cv.tar.gz',
 //        'dest': 'PaddleLiteArmv7'
 //    ],
 ]
