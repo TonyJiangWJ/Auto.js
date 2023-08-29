@@ -5,6 +5,7 @@ import com.stardust.autojs.onnx.util.Letterbox;
 /**
  * @author TonyJiangWJ
  * @since 2023/8/20
+ * transfer from https://gitee.com/agricultureiot/yolo-onnx-java
  */
 public class DetectResult {
 
@@ -21,6 +22,7 @@ public class DetectResult {
 
     public DetectResult(Detection detection, Letterbox letterbox) {
         this.label = detection.label;
+        this.clsId = detection.getClsId();
         this.confidence = detection.confidence;
         double dw = letterbox.getDw();
         double dh = letterbox.getDh();
