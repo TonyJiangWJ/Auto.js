@@ -14,7 +14,9 @@
 - 变更默认包名为 `org.autojs.autojs.modify` 打包为64位和32位，修复对Android12的支持。
 - 替换了定时任务的调度代码增加了WorkManager和AlarmManager的选项，默认的Android-job已弃用。
 - 修改了截图权限逻辑，多个脚本同时运行时可以共享AutoJS的截图权限而且不会互相抢占。
-- 更新opencv版本为4.5.5 支持SIFT找图等特性。
+- 更新opencv版本为4.8.0 支持SIFT找图、DNN加载YoloV8模型等特性。
+- 增加OnnxRuntime，支持本地推理ONNX模型，如YOLO等，目前在[蚂蚁森林脚本]((https://github.com/TonyJiangWJ/Ant-Forest))中有使用。
+- 内置了PaddleLite2.13-rc，也可以利用它进行本地模型推理。
 - 更新了内置rhino版本为1.7.14 支持字符串模板等JS特性。
 - 增加PaddleOCR 封装为 `$ocr` 具体使用见示例文件 无文档。目前存在低概率的模型初始化失败导致无法进行文字识别的问题，跟踪修复中。
 - ~增加了tess-two 使用可以参考 [TesserOcrUtil](https://github.com/TonyJiangWJ/AutoScriptBase/blob/master/lib/prototype/TesserOcrUtil.js)，需要训练好的 `traineddata` 进行支持。~ 使用比较麻烦 建议直接使用PaddleOCR。
@@ -22,6 +24,12 @@
 - 修复了其他的不痛不痒的缺陷。
 - 如果脚本需要防止类似淘宝的无障碍检测，请使用 `AutoJs.fakeIdlefish`。可以规避无障碍检测，将包名直接改成闲鱼的包名，加了个.x的后缀 `com.taobao.idlefish.x`。代码分支为 [fake_idlefish](https://github.com/TonyJiangWJ/Auto.js/tree/fake_idlefish)
 - 完善了一下打包功能，增加V2签名避免报毒。打包插件见仓库：[Auto.js-ApkBuilder](https://github.com/TonyJiangWJ/Auto.js-ApkBuilder)
+- 安装包下载路径，蓝奏云：
+  ```
+  https://wwxs.lanzouq.com/b042le51i
+  密码:b034
+  ```
+- 对于x86版本请自行打包编译，PaddleOCR不支持x86
 
 ### 不支持的功能包括但不限于
 
@@ -39,9 +47,9 @@
 ## 关于编译问题的说明
 
 - 默认gradle设置了代理，请自行修改关闭或者本机开启代理。文件为 `gradle.properties`，编译所需JDK版本需要大于等于JDK11，使用Android Studio内置的OpenJDK即可。
-- 代码是没问题的，针对原作者的开源协议代码纯开源的毫无保留。具体编译打包有安卓开发基础就行，毕竟我这个外行也能打包编译。
+- 代码是没问题的，针对原作者的开源协议代码纯开源的毫无保留。具体编译打包有安卓开发基础就行，实在不行自己拿github actions打包后的apk进行签名就能安装。
 - 编译问题其实我真的不想管，我自己也不是正经搞安卓的也是一步一步摸索过来的，请自行探索或者学一下这些基础知识，而不是拿到日志了，自己不分析，就跟伸手党一样问别人应该怎么做。你我都是陌生人，你能不能编译不是我的义务，更何况我甚至不知道你是否是拿来开发灰产，也就是原作者选择闭源开发新版本AutoJS Pro的原因。
-- 另外置顶ISSUE也说的很明确，单纯自用。个人时间有限，我不想花时间在这些类似于教学的方面，对我来说没有什么益处。
+- 本项目单纯自用。个人时间有限，我不想花时间在这些类似于教学的方面，对我来说没有什么益处。
 
 ## 以下为原始特性描述等信息
 
