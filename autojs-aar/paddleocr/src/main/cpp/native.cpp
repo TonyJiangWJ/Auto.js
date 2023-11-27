@@ -67,51 +67,56 @@ Java_com_baidu_paddle_lite_ocr_OCRPredictorNative_forward(
         JNIEnv *env, jobject thiz, jlong java_pointer,
         jobject original_image,jint j_max_size_len, jint j_run_det, jint j_run_cls,
         jint j_run_rec) {
-  LOGI("begin to run native forward");
-  if (java_pointer == 0) {
-    LOGE("JAVA pointer is NULL");
+  try {
+    LOGI("begin to run native forward");
+    if (java_pointer == 0) {
+      LOGE("JAVA pointer is NULL");
+      return cpp_array_to_jfloatarray(env, nullptr, 0);
+    }
+
+    cv::Mat origin = bitmap_to_cv_mat(env, original_image);
+    if (origin.size == nullptr) {
+      LOGE("origin bitmap cannot convert to CV Mat");
+      return cpp_array_to_jfloatarray(env, nullptr, 0);
+    }
+
+    int max_size_len = j_max_size_len;
+    int run_det = j_run_det;
+    int run_cls = j_run_cls;
+    int run_rec = j_run_rec;
+
+    ppredictor::OCR_PPredictor *ppredictor =
+        (ppredictor::OCR_PPredictor *)java_pointer;
+    std::vector<int64_t> dims_arr;
+    std::vector<ppredictor::OCRPredictResult> results =
+        ppredictor->infer_ocr(origin, max_size_len, run_det, run_cls, run_rec);
+    LOGI("infer_ocr finished with boxes %ld", results.size());
+
+    // 这里将std::vector<ppredictor::OCRPredictResult> 序列化成
+    // float数组，传输到java层再反序列化
+    std::vector<float> float_arr;
+    for (const ppredictor::OCRPredictResult &r : results) {
+      float_arr.push_back(r.points.size());
+      float_arr.push_back(r.word_index.size());
+      float_arr.push_back(r.score);
+      // add det point
+      for (const std::vector<int> &point : r.points) {
+        float_arr.push_back(point.at(0));
+        float_arr.push_back(point.at(1));
+      }
+      // add rec word idx
+      for (int index : r.word_index) {
+        float_arr.push_back(index);
+      }
+      // add cls result
+      float_arr.push_back(r.cls_label);
+      float_arr.push_back(r.cls_score);
+    }
+    return cpp_array_to_jfloatarray(env, float_arr.data(), float_arr.size());
+  } catch (const std::exception& e) {
+    LOGE("something went wrong, unable to resolve it");
     return cpp_array_to_jfloatarray(env, nullptr, 0);
   }
-
-  cv::Mat origin = bitmap_to_cv_mat(env, original_image);
-  if (origin.size == nullptr) {
-    LOGE("origin bitmap cannot convert to CV Mat");
-    return cpp_array_to_jfloatarray(env, nullptr, 0);
-  }
-
-  int max_size_len = j_max_size_len;
-  int run_det = j_run_det;
-  int run_cls = j_run_cls;
-  int run_rec = j_run_rec;
-
-  ppredictor::OCR_PPredictor *ppredictor =
-      (ppredictor::OCR_PPredictor *)java_pointer;
-  std::vector<int64_t> dims_arr;
-  std::vector<ppredictor::OCRPredictResult> results =
-      ppredictor->infer_ocr(origin, max_size_len, run_det, run_cls, run_rec);
-  LOGI("infer_ocr finished with boxes %ld", results.size());
-
-  // 这里将std::vector<ppredictor::OCRPredictResult> 序列化成
-  // float数组，传输到java层再反序列化
-  std::vector<float> float_arr;
-  for (const ppredictor::OCRPredictResult &r : results) {
-    float_arr.push_back(r.points.size());
-    float_arr.push_back(r.word_index.size());
-    float_arr.push_back(r.score);
-    // add det point
-    for (const std::vector<int> &point : r.points) {
-      float_arr.push_back(point.at(0));
-      float_arr.push_back(point.at(1));
-    }
-    // add rec word idx
-    for (int index : r.word_index) {
-      float_arr.push_back(index);
-    }
-    // add cls result
-    float_arr.push_back(r.cls_label);
-    float_arr.push_back(r.cls_score);
-  }
-  return cpp_array_to_jfloatarray(env, float_arr.data(), float_arr.size());
 }
 
 extern "C" JNIEXPORT void JNICALL
