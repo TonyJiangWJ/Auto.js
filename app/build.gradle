@@ -68,7 +68,7 @@ android {
             shrinkResources false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            applicationIdSuffix ".modify"
+            applicationIdSuffix ".x"
         }
         if (signSupport) {
             println('sign support')
