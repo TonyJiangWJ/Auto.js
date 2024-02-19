@@ -42,6 +42,7 @@ import com.stardust.autojs.runtime.api.UI;
 import com.stardust.autojs.runtime.exception.ScriptEnvironmentException;
 import com.stardust.autojs.runtime.exception.ScriptException;
 import com.stardust.autojs.runtime.exception.ScriptInterruptedException;
+import com.stardust.autojs.shizuku.WrappedShizuku;
 import com.stardust.concurrent.VolatileDispose;
 import com.stardust.lang.ThreadCompat;
 import com.stardust.pio.UncheckedIOException;
@@ -201,6 +202,9 @@ public class ScriptRuntime {
     @ScriptVariable
     public MlKitOCR mlKitOCR;
 
+    @ScriptVariable
+    public WrappedShizuku shizuku;
+
     private Images images;
 
     private static WeakReference<Context> applicationContext;
@@ -234,6 +238,7 @@ public class ScriptRuntime {
         plugins = new Plugins(context, this);
         ocr = new OCR();
         mlKitOCR = new MlKitOCR();
+        shizuku = WrappedShizuku.getInstance();
     }
 
     public void init() {

@@ -33,7 +33,6 @@
     <!-- Ad SDK Permissions -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 
-
     <application
         android:name="org.autojs.autojs.App"
         android:allowBackup="false"
@@ -338,9 +337,4 @@
         </receiver>
 
     </application>
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.TTS_SERVICE" />
-        </intent>
-    </queries>
 </manifest>
