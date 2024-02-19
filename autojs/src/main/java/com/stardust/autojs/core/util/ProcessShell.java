@@ -4,7 +4,6 @@ package com.stardust.autojs.core.util;
 import android.util.Log;
 
 import com.stardust.autojs.runtime.api.AbstractShell;
-import com.stardust.autojs.runtime.exception.ScriptInterruptedException;
 import com.stardust.autojs.util.ProcessUtils;
 import com.stardust.pio.UncheckedIOException;
 
@@ -19,7 +18,6 @@ import java.io.InputStreamReader;
  * <p>
  * 来自网络~~
  */
-
 public class ProcessShell extends AbstractShell {
 
     private static final String TAG = "ProcessShell";
@@ -29,8 +27,8 @@ public class ProcessShell extends AbstractShell {
     private BufferedReader mSucceedReader;
     private BufferedReader mErrorReader;
 
-    private StringBuilder mSucceedOutput = new StringBuilder();
-    private StringBuilder mErrorOutput = new StringBuilder();
+    private final StringBuilder mSucceedOutput = new StringBuilder();
+    private final StringBuilder mErrorOutput = new StringBuilder();
 
     public ProcessShell() {
 
@@ -119,7 +117,7 @@ public class ProcessShell extends AbstractShell {
         try {
             String line;
             while ((line = reader.readLine()) != null) {
-                sb.append(line).append("\n");
+                sb.append(line).append(COMMAND_LINE_END);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -152,7 +150,7 @@ public class ProcessShell extends AbstractShell {
     }
 
     public static Result exec(String command, boolean isRoot) {
-        String[] commands = command.split("\n");
+        String[] commands = command.split(COMMAND_LINE_END);
         return exec(commands, isRoot);
     }
 
@@ -179,13 +177,26 @@ public class ProcessShell extends AbstractShell {
     }
 
     public static Result execCommand(String[] commands, boolean isRoot) {
+        try {
+            Process process = isRoot ? getRootProcess() : getShellProcess();
+            return execCommand(commands, process);
+        } catch (Exception e) {
+            Result result = new Result();
+            String message = e.getMessage();
+            result.code = 1;
+            result.result = "";
+            result.error = message != null ? message : "";
+            return result;
+        }
+    }
+
+    public static Result execCommand(String[] commands, Process process) {
         Result commandResult = new Result();
-        if (commands == null || commands.length == 0)
-            throw new IllegalArgumentException("command is empty");
-        Process process = null;
+        if (commands == null || commands.length == 0) {
+            throw new IllegalArgumentException("命令不能为空");
+        }
         DataOutputStream os = null;
         try {
-            process = Runtime.getRuntime().exec(isRoot ? COMMAND_SU : COMMAND_SH);
             os = new DataOutputStream(process.getOutputStream());
             for (String command : commands) {
                 if (command != null) {
@@ -202,7 +213,22 @@ public class ProcessShell extends AbstractShell {
             commandResult.error = readAll(process.getErrorStream());
             Log.d(TAG, commandResult.toString());
         } catch (Exception e) {
-            throw new ScriptInterruptedException(e);
+            // @Overwrite by SuperMonster003 on Apr 26, 2022.
+            //  ! Try write exception into commandResult and make it visible to AutoJs6 console.
+            //  ! Example (for non-root devices): log(shell('date', true));
+
+            // throw new ScriptInterruptedException(e);
+
+            String message = e.getMessage();
+            String aimErrStr = "error=";
+
+            int index = message != null ? message.indexOf(aimErrStr) : -1;
+
+            commandResult.code = index < 0 ? 1 : Integer.parseInt(message.substring(index + aimErrStr.length()).replaceAll("^(\\d+).+", "$1"));
+            commandResult.result = "";
+            commandResult.error = message != null ? message : "";
+
+            Log.e(TAG, "execCommand fail ", e);
         } finally {
             try {
                 if (os != null) os.close();
@@ -220,20 +246,27 @@ public class ProcessShell extends AbstractShell {
         return commandResult;
     }
 
+    public static Process getShellProcess() throws IOException {
+        return Runtime.getRuntime().exec(COMMAND_SH);
+    }
+
+    public static Process getRootProcess() throws IOException {
+        return Runtime.getRuntime().exec(COMMAND_SU);
+    }
+
     private static String readAll(InputStream inputStream) throws IOException {
         String line;
         StringBuilder builder = new StringBuilder();
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         while ((line = reader.readLine()) != null) {
-            builder.append(line).append('\n');
+            builder.append(line).append(COMMAND_LINE_END);
         }
         return builder.toString();
     }
 
-    public static Result execCommand(String command, boolean isRoot) {
-        String[] commands = command.split("\n");
-        return execCommand(commands, isRoot);
+    public static Result execCommand(String command, boolean withRoot) {
+        String[] commands = command.split(COMMAND_LINE_END);
+        return execCommand(commands, withRoot);
     }
-
 
 }

@@ -3,6 +3,8 @@ package org.autojs.autojs.ui.main.scripts;
 import android.app.Activity;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
+
 import androidx.annotation.Nullable;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -17,9 +19,12 @@ import org.autojs.autojs.R;
 import org.autojs.autojs.external.fileprovider.AppFileProvider;
 import org.autojs.autojs.model.explorer.ExplorerDirPage;
 import org.autojs.autojs.model.explorer.Explorers;
+import org.autojs.autojs.model.script.ScriptFile;
 import org.autojs.autojs.model.script.Scripts;
+import org.autojs.autojs.theme.dialog.ThemeColorMaterialDialogBuilder;
 import org.autojs.autojs.tool.SimpleObserver;
 import org.autojs.autojs.ui.common.ScriptOperations;
+import org.autojs.autojs.ui.edit.EditorView;
 import org.autojs.autojs.ui.explorer.ExplorerView;
 import org.autojs.autojs.ui.main.FloatingActionMenu;
 import org.autojs.autojs.ui.main.QueryEvent;
@@ -62,6 +67,22 @@ public class MyScriptListFragment extends ViewPagerFragment implements FloatingA
         mExplorerView.setExplorer(Explorers.workspace(), ExplorerDirPage.createRoot(Pref.getScriptDirPath()));
         mExplorerView.setOnItemClickListener((view, item) -> {
             if (item.isEditable()) {
+                ScriptFile scriptFile = item.toScriptFile();
+                Log.d(TAG, "setUpViews: selected file size: " + scriptFile.length());
+                if (scriptFile.length() > EditorView.MAX_EDITABLE_SIZE) {
+                    new ThemeColorMaterialDialogBuilder(getContext())
+                            .title(getString(R.string.text_cannot_read_file))
+                            .content("当前文件过大，直接编辑可能导致卡死")
+                            .positiveText(R.string.text_cancel)
+                            .negativeText("使用其他方式打开")
+                            .cancelable(false)
+                            .onPositive((dialog, which) -> {})
+                            .onNegative(((dialog, which) -> {
+                                IntentUtil.viewFile(GlobalAppContext.get(), item.getPath(), AppFileProvider.AUTHORITY);
+                            }))
+                            .show();
+                    return;
+                }
                 Scripts.INSTANCE.edit(getActivity(), item.toScriptFile());
             } else {
                 IntentUtil.viewFile(GlobalAppContext.get(), item.getPath(), AppFileProvider.AUTHORITY);

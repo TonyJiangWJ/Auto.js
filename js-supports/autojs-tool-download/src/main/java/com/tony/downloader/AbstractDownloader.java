@@ -2,9 +2,6 @@ package com.tony.downloader;
 
 import android.annotation.SuppressLint;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.tony.ProgressInfo;
 import com.tony.listener.DefaultDownloaderListener;
 import com.tony.listener.DownloaderListener;
@@ -27,11 +24,21 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * @author TonyJiang 2019/11/11
@@ -65,6 +72,7 @@ public abstract class AbstractDownloader {
             ByteArrayOutputStream byteArrayOutputStream = null;
             InputStream inputStream = null;
             try {
+                trustAllCertificates();
                 urlConnection = (HttpURLConnection) new URL(targetReleasesApiUrl).openConnection();
                 //设置连接时间，10秒
                 urlConnection.setConnectTimeout(10 * 1000);
@@ -115,6 +123,7 @@ public abstract class AbstractDownloader {
 
 
     private HttpURLConnection createDownloadConnection(String url) throws IOException {
+        trustAllCertificates();
         urlConnection = (HttpURLConnection) new URL(url).openConnection();
         //设置连接时间，100秒
         urlConnection.setConnectTimeout(100 * 1000);
@@ -279,6 +288,35 @@ public abstract class AbstractDownloader {
             getListener().updateGui("解压成功！");
         } else {
             getListener().updateError("解压失败！");
+        }
+    }
+
+    // 信任所有证书
+    private void trustAllCertificates() {
+        try {
+            SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, new TrustManager[]{new X509TrustManager() {
+                public void checkClientTrusted(X509Certificate[] chain, String authType) {
+                }
+
+                public void checkServerTrusted(X509Certificate[] chain, String authType) {
+                }
+
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+            }}, new java.security.SecureRandom());
+
+            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+            HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+
+                @Override
+                public boolean verify(String s, SSLSession sslSession) {
+                    return true;
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

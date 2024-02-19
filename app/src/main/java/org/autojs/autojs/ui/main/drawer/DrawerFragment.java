@@ -14,6 +14,7 @@ import android.widget.Toast;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.stardust.app.AppOpsKt;
 import com.stardust.app.GlobalAppContext;
+import com.stardust.autojs.shizuku.WrappedShizuku;
 import com.stardust.notification.NotificationListenerService;
 import com.stardust.theme.ThemeColorManager;
 import com.stardust.util.IntentUtil;
@@ -75,6 +76,11 @@ public class DrawerFragment extends androidx.fragment.app.Fragment {
 
 
     private DrawerMenuItem mConnectionItem = new DrawerMenuItem(R.drawable.ic_connect_to_pc, R.string.debug, 0, this::connectOrDisconnectToRemote);
+
+    private DrawerMenuItem mEnableShizukuItem = new DrawerMenuItem(R.drawable.ic_connect_to_pc, R.string.enable_shizuku, R.string.key_enable_shizuku, this::enableShizuku);
+
+    private DrawerMenuItem mEnableAlarmManager = new DrawerMenuItem(R.drawable.ic_descending_order, R.string.text_enable_alarm_manager, R.string.key_enable_alarm_manager, this::toggleWorkProvider);
+
     private DrawerMenuItem mAccessibilityServiceItem = new DrawerMenuItem(R.drawable.ic_service_green, R.string.text_accessibility_service, 0, this::enableOrDisableAccessibilityService);
     private DrawerMenuItem mStableModeItem = new DrawerMenuItem(R.drawable.ic_stable, R.string.text_stable_mode, R.string.key_stable_mode, null) {
         @Override
@@ -145,9 +151,10 @@ public class DrawerFragment extends androidx.fragment.app.Fragment {
 
                 new DrawerMenuGroup(R.string.text_others),
                 mConnectionItem,
+                mEnableShizukuItem,
                 new DrawerMenuItem(R.drawable.ic_personalize, R.string.text_theme_color, this::openThemeColorSettings),
                 new DrawerMenuItem(R.drawable.ic_night_mode, R.string.text_night_mode, R.string.key_night_mode, this::toggleNightMode),
-                new DrawerMenuItem(R.drawable.ic_descending_order, R.string.text_enable_alarm_manager, R.string.key_enable_alarm_manager, this::toggleWorkProvider),
+                mEnableAlarmManager,
                 new DrawerMenuItem(R.drawable.ic_enable_log, R.string.text_enable_debug_log, R.string.key_enable_debug_log, this::toggleDebugLog)
         )));
         mDrawerMenu.setAdapter(mDrawerMenuAdapter);
@@ -230,18 +237,12 @@ public class DrawerFragment extends androidx.fragment.app.Fragment {
         Log.d("switch-work-provider", "切换任务调度模式: " + (enableAlarmManager ? "alarm-manager" : "work-manager"));
         // TODO 转换所有任务, 目前移除所有任务
         if (enableAlarmManager) {
-            PreferenceManager.getDefaultSharedPreferences(getContext())
-                    .edit()
-                    .putString(WorkProviderConstants.ACTIVE_PROVIDER, WorkProviderConstants.ALARM_MANAGER_PROVIDER)
-                    .apply();
+            Pref.enableAlarmManager();
             WorkManagerProvider.getInstance(getContext()).cancelAllWorks();
             AutoJs.getInstance().debugInfo("切换任务调度模式为：alarm-manager");
             ((AlarmManagerProvider) (AlarmManagerProvider.getInstance(getContext()))).checkTasksRepeatedlyIfNeeded(getContext());
         } else {
-            PreferenceManager.getDefaultSharedPreferences(getContext())
-                    .edit()
-                    .putString(WorkProviderConstants.ACTIVE_PROVIDER, WorkProviderConstants.WORK_MANAGER_PROVIDER)
-                    .apply();
+            Pref.enableWorkManager();
             AlarmManagerProvider.getInstance(getContext()).cancelAllWorks();
             AutoJs.getInstance().debugInfo("切换任务调度模式为：work-manager");
         }
@@ -267,6 +268,34 @@ public class DrawerFragment extends androidx.fragment.app.Fragment {
             inputRemoteHost();
         } else if (!checked && connected) {
             DevPluginService.getInstance().disconnectIfNeeded();
+        }
+    }
+
+    void enableShizuku(DrawerMenuItemViewHolder holder) {
+        boolean checked = holder.getSwitchCompat().isChecked();
+        Pref.setShizukuStatus(checked);
+        if (checked) {
+            boolean valid = true;
+            if (!WrappedShizuku.getInstance().isInstalled()) {
+                Toast.makeText(GlobalAppContext.get(), "当前未安装shizuku，无法启用",
+                        Toast.LENGTH_LONG).show();
+                valid = false;
+            }
+            if (!WrappedShizuku.getInstance().isShizukuRunning()) {
+                Toast.makeText(GlobalAppContext.get(), "shizuku服务未启动，请先激活shizuku",
+                        Toast.LENGTH_LONG).show();
+                valid = false;
+            }
+            if (!valid) {
+                holder.getSwitchCompat().setChecked(false, false);
+                Pref.setShizukuStatus(false);
+                return;
+            }
+            WrappedShizuku.getInstance().requestPermission();
+        } else if (WrappedShizuku.getInstance().isRunning()) {
+            Toast.makeText(GlobalAppContext.get(), "请在shizuku界面中取消授权",
+                    Toast.LENGTH_LONG).show();
+            startActivity(WrappedShizuku.getInstance().getLaunchIntent());
         }
     }
 
@@ -319,6 +348,11 @@ public class DrawerFragment extends androidx.fragment.app.Fragment {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             setChecked(mUsageStatsPermissionItem, AppOpsKt.isOpPermissionGranted(getContext(), AppOpsManager.OPSTR_GET_USAGE_STATS));
         }
+        boolean enableAlarmManager = WorkProviderConstants.WORK_MANAGER_PROVIDER.equals(Pref.getCurrentManager());
+        if (enableAlarmManager) {
+            Pref.enableAlarmManager();
+        }
+        setChecked(mEnableAlarmManager, enableAlarmManager);
     }
 
     private void enableAccessibilityService() {

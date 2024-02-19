@@ -72,6 +72,7 @@ import org.autojs.autojs.ui.widget.EWebView;
 import org.autojs.autojs.ui.widget.SimpleTextWatcher;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.List;
 
 import io.reactivex.Observable;
@@ -95,6 +96,10 @@ public class EditorView extends FrameLayout implements CodeCompletionBar.OnHintC
     public static final String EXTRA_READ_ONLY = "readOnly";
     public static final String EXTRA_SAVE_ENABLED = "saveEnabled";
     public static final String EXTRA_RUN_ENABLED = "runEnabled";
+    /**
+     * 限制最大可编辑大小，500kb基本是极限了容易直接卡死，当前可能是其他方式打开
+     */
+    public static final Long MAX_EDITABLE_SIZE = 500 * 1024L;
 
     @ViewById(R.id.editor)
     CodeEditor mEditor;
@@ -242,7 +247,13 @@ public class EditorView extends FrameLayout implements CodeCompletionBar.OnHintC
     @SuppressLint("CheckResult")
     private Observable<String> loadUri(final Uri uri) {
         mEditor.setProgress(true);
-        return Observable.fromCallable(() -> PFiles.read(getContext().getContentResolver().openInputStream(uri)))
+        return Observable.fromCallable(() -> {
+                    InputStream inputStream = getContext().getContentResolver().openInputStream(uri);
+                    if (inputStream.available() > MAX_EDITABLE_SIZE) {
+                        throw new IllegalArgumentException("当前文件过大，请勿使用AutoJS编辑");
+                    }
+                    return PFiles.read(inputStream);
+                })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnNext(s -> {

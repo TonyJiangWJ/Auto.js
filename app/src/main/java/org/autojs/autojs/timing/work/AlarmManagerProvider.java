@@ -161,6 +161,7 @@ public class AlarmManagerProvider extends BroadcastReceiver implements WorkProvi
         cancel(task);
     }
 
+    @SuppressLint("ScheduleExactAlarm")
     private void setExactCompat(AlarmManager alarmManager, PendingIntent op, long millis) {
         int type = AlarmManager.RTC_WAKEUP;
         long gapMillis = millis - System.currentTimeMillis();

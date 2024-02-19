@@ -3,9 +3,9 @@ package org.autojs.autojs.timing;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
+import org.autojs.autojs.Pref;
 import org.autojs.autojs.autojs.AutoJs;
 import org.autojs.autojs.external.ScriptIntents;
 import org.autojs.autojs.timing.work.AlarmManagerProvider;
@@ -123,16 +123,7 @@ public class TimedTaskScheduler {
     }
 
     public static WorkProvider getWorkProvider(Context context) {
-        try {
-            // 尝试获取默认的类型 失败后设置ALARM_MANAGER作为默认的
-            PreferenceManager.getDefaultSharedPreferences(context).getString(WorkProviderConstants.ACTIVE_PROVIDER,
-                    WorkProviderConstants.ALARM_MANAGER_PROVIDER);
-        } catch (Exception e) {
-            PreferenceManager.getDefaultSharedPreferences(context).edit().putString(WorkProviderConstants.ACTIVE_PROVIDER,
-                    WorkProviderConstants.ALARM_MANAGER_PROVIDER).apply();
-        }
-        String currentActive = PreferenceManager.getDefaultSharedPreferences(context)
-                .getString(WorkProviderConstants.ACTIVE_PROVIDER, WorkProviderConstants.ALARM_MANAGER_PROVIDER);
+        String currentActive = Pref.getCurrentManager();
         if (WorkProviderConstants.WORK_MANAGER_PROVIDER.equals(currentActive)) {
             Log.d(LOG_TAG, "当前启用的定时任务方式为WorkManager");
             return WorkManagerProvider.getInstance(context);

@@ -142,6 +142,7 @@
     <string name="text_again_and_again_again">又双叒</string>
     <string name="text_again_and_again_again_again">又双叒叕</string>
     <string name="debug">连接电脑</string>
+    <string name="enable_shizuku">启用shizuku</string>
     <string name="text_server_address">服务器地址</string>
     <string name="text_annunciation">声明</string>
     <string name="text_about_me_and_repo">关于项目与开发者</string>
@@ -407,6 +408,7 @@
     <string name="key_night_mode">key_night_mode</string>
     <string name="text_enable_alarm_manager">使用AlarmManager调度任务</string>
     <string name="key_enable_alarm_manager">ENABLE_ALARM_MANAGER</string>
+    <string name="key_enable_shizuku">ENABLE_SHIZUKU</string>
     <string name="text_enable_debug_log">是否打印调试日志</string>
     <string name="key_enable_debug_log">ENABLE_DEBUG_LOG</string>
     <string name="text_run_on_startup">Auto.js启动时</string>

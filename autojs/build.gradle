@@ -66,8 +66,12 @@ dependencies {
     // log4j
     api 'de.mindpipe.android:android-logging-log4j:1.0.3'
     api 'log4j:log4j:1.2.17'
-    // Terminal emulator
 
+    def shizuku_version = '13.1.4'
+    implementation "dev.rikka.shizuku:api:$shizuku_version"
+    implementation "dev.rikka.shizuku:provider:$shizuku_version"
+
+    // Terminal emulator
     api project(path: ':autojs-aar:libtermexec')
     api project(path: ':autojs-aar:emulatorview')
     api project(path: ':autojs-aar:term')

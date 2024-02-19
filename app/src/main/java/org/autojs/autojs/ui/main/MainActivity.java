@@ -3,7 +3,6 @@ package org.autojs.autojs.ui.main;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -11,7 +10,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,6 +23,7 @@ import com.stardust.app.OnActivityResultDelegate;
 import com.stardust.autojs.core.permission.OnRequestPermissionsResultCallback;
 import com.stardust.autojs.core.permission.PermissionRequestProxyActivity;
 import com.stardust.autojs.core.permission.RequestPermissionCallbacks;
+import com.stardust.autojs.shizuku.WrappedShizuku;
 import com.stardust.enhancedfloaty.FloatyService;
 import com.stardust.pio.PFiles;
 import com.stardust.theme.ThemeColorManager;
@@ -108,7 +107,7 @@ public class MainActivity extends BaseActivity implements OnActivityResultDelega
         showAnnunciationIfNeeded();
         EventBus.getDefault().register(this);
         applyDayNightMode();
-
+        WrappedShizuku.getInstance().onCreate(BuildConfig.APPLICATION_ID, BuildConfig.VERSION_CODE);
     }
 
     @AfterViews
@@ -299,6 +298,9 @@ public class MainActivity extends BaseActivity implements OnActivityResultDelega
     @Override
     protected void onStart() {
         super.onStart();
+        if (Pref.isShizukuEnabled()) {
+            WrappedShizuku.getInstance().requestPermission();
+        }
     }
 
 

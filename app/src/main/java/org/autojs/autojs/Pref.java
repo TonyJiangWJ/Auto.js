@@ -10,6 +10,7 @@ import com.stardust.app.GlobalAppContext;
 import com.stardust.autojs.runtime.accessibility.AccessibilityConfig;
 
 import org.autojs.autojs.autojs.key.GlobalKeyObserver;
+import org.autojs.autojs.timing.work.WorkProviderConstants;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +26,8 @@ public class Pref {
     private static final String KEY_FLOATING_MENU_SHOWN = "KEY_FLOATING_MENU_SHOWN";
     private static final String KEY_EDITOR_THEME = "editor.theme";
     private static final String KEY_EDITOR_TEXT_SIZE = "editor.textSize";
+
+    private static final String KEY_ENABLE_SHIZUKU = "KEY_ENABLE_SHIZUKU";
 
     private static SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
         @Override
@@ -175,5 +178,27 @@ public class Pref {
         return PackageManager.PERMISSION_GRANTED == context.getPackageManager()
                 .checkPermission("android.permission.WRITE_SECURE_SETTINGS",
                         context.getPackageName());
+    }
+
+    public static boolean isShizukuEnabled() {
+        return def().getBoolean(KEY_ENABLE_SHIZUKU, false);
+    }
+
+    public static void setShizukuStatus(Boolean enabled) {
+        def().edit().putBoolean(KEY_ENABLE_SHIZUKU, enabled).apply();
+    }
+
+    public static void enableAlarmManager() {
+        def().edit().putString(WorkProviderConstants.ACTIVE_PROVIDER, WorkProviderConstants.ALARM_MANAGER_PROVIDER).apply();
+        def().edit().putBoolean(getString(R.string.key_enable_alarm_manager), true).apply();
+    }
+
+    public static void enableWorkManager() {
+        def().edit().putString(WorkProviderConstants.ACTIVE_PROVIDER, WorkProviderConstants.WORK_MANAGER_PROVIDER).apply();
+        def().edit().putBoolean(getString(R.string.key_enable_alarm_manager), false).apply();
+    }
+
+    public static String getCurrentManager() {
+        return def().getString(WorkProviderConstants.ACTIVE_PROVIDER, WorkProviderConstants.WORK_MANAGER_PROVIDER);
     }
 }

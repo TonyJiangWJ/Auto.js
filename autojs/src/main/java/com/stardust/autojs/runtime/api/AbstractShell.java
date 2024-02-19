@@ -3,6 +3,8 @@ package com.stardust.autojs.runtime.api;
 import android.content.Context;
 import android.text.TextUtils;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.stardust.autojs.engine.RootAutomatorEngine;
 import com.stardust.util.ScreenMetrics;
 
@@ -13,6 +15,8 @@ import com.stardust.util.ScreenMetrics;
 public abstract class AbstractShell {
 
     public static class Result {
+        private static final Gson sGson = new GsonBuilder().setPrettyPrinting().create();
+
         public int code = -1;
         public String error;
         public String result;
@@ -25,6 +29,15 @@ public abstract class AbstractShell {
                     ", result='" + result + '\'' +
                     '}';
         }
+
+        public String toJson() {
+            return sGson.toJson(this);
+        }
+
+        public static Result fromJson(String json) {
+            return sGson.fromJson(json, Result.class);
+        }
+
     }
 
     protected static final String COMMAND_SU = "su";
