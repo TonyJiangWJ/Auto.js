@@ -51,7 +51,7 @@ dependencies {
     api('com.afollestad.material-dialogs:core:0.9.2.3', {
         exclude group: 'com.android.support'
     })
-    api 'com.google.android.material:material:1.4.0'
+    api "com.google.android.material:material:$material_version"
     api 'com.makeramen:roundedimageview:2.3.0'
     // OpenCv
     api project(path: ':autojs-aar:opencv')

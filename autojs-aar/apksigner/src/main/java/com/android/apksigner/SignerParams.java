@@ -21,7 +21,6 @@ import android.util.Log;
 import com.android.apksig.SigningCertificateLineage.SignerCapabilities;
 import com.android.apksig.internal.util.X509CertificateUtils;
 
-import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -81,7 +80,7 @@ public class SignerParams {
      * @param file file backing the keystore or {@code null} if the keystore is not file-backed, for
      *             example, a PKCS #11 KeyStore.
      */
-    private static void loadKeyStoreFromFile(KeyStore ks, String file, @NotNull List<char[]> passwords)
+    private static void loadKeyStoreFromFile(KeyStore ks, String file, List<char[]> passwords)
             throws Exception {
         Exception lastFailure = null;
         for (char[] password : passwords) {
