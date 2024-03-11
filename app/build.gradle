@@ -169,7 +169,7 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$appcompat_version"
     implementation "androidx.appcompat:appcompat-resources:$appcompat_version"
     implementation 'androidx.cardview:cardview:1.0.0'
-    implementation 'com.google.android.material:material:1.4.0'
+    implementation "com.google.android.material:material:$material_version"
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'androidx.activity:activity-ktx:1.4.0'
     // old version support

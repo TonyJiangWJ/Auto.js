@@ -42,5 +42,7 @@ task clean(type: Delete) {
 ext {
     versions = new JsonSlurper().parse(file('./project-versions.json'))
     ext.junit_version = '4.13.2'
+    // 高版本androidx库在不同的Android版本下有兼容性问题，因此这里锁定较低版本的库
     ext.appcompat_version = '1.4.1'
+    ext.material_version = '1.4.0'
 }
