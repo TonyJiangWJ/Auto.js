@@ -13,7 +13,9 @@ import androidx.multidex.MultiDexApplication
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
-import com.flurry.android.FlurryAgent
+import com.posthog.android.PostHogAndroid
+import com.posthog.android.PostHogAndroidConfig
+
 import com.stardust.app.GlobalAppContext
 import com.stardust.autojs.core.ui.inflater.ImageLoader
 import com.stardust.autojs.core.ui.inflater.util.Drawables
@@ -34,6 +36,7 @@ import org.autojs.autojs.timing.TimedTaskScheduler
 import org.autojs.autojs.tool.CrashHandler
 import org.autojs.autojs.ui.error.ErrorReportActivity
 import java.lang.ref.WeakReference
+import java.util.*
 
 /**
  * Created by Stardust on 2017/1/27.
@@ -53,11 +56,16 @@ class App : MultiDexApplication() {
     }
 
     private fun setUpStaticsTool() {
-        if (BuildConfig.DEBUG || StringUtils.isEmpty(BuildConfig.FLURRY_APP_ID))
+        if (BuildConfig.DEBUG || StringUtils.isEmpty(BuildConfig.POSTHOG_APP_ID))
             return
-        FlurryAgent.Builder()
-            .withLogEnabled(BuildConfig.DEBUG)
-            .build(this, BuildConfig.FLURRY_APP_ID)
+        // Create a PostHog Config with the given API key and host
+        val config = PostHogAndroidConfig(
+            apiKey = BuildConfig.POSTHOG_APP_ID,
+            host = "https://app.posthog.com"
+        )
+
+        // Setup PostHog with the given Context and Config
+        PostHogAndroid.setup(this, config)
     }
 
     @SuppressLint("HardwareIds")
