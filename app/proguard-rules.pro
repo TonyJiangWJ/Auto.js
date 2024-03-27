@@ -104,9 +104,9 @@
 -keepattributes EnclosingMethod
 
 
-# Required to preserve the Flurry SDK
--keep class com.flurry.** { *; }
--dontwarn com.flurry.**
+# Required to preserve the PostHog SDK
+-keep class com.posthog.** { *; }
+-dontwarn com.posthog.**
 -keepattributes *Annotation*,EnclosingMethod,Signature
 
 -keepclasseswithmembers class * {
