@@ -12,7 +12,7 @@ def storePasswd = System.getenv('autojspasswd')
 def keyPasswd = System.getenv('autojspasswd')
 def alias = System.getenv('autojsalias')
 def buglyAppId = System.getenv("bugly_app_id")
-def flurryAppId = System.getenv("flurry_app_id")
+def posthogAppId = System.getenv("posthog_app_id")
 
 def signSupport = false
 
@@ -43,7 +43,7 @@ android {
         versionCode versions.appVersionCode
         versionName versions.appVersionName
         buildConfigField "String", "BUGLY_APP_ID", "\"${buglyAppId ?: ''}\""
-        buildConfigField "String", "FLURRY_APP_ID", "\"${flurryAppId ?: ''}\""
+        buildConfigField "String", "POSTHOG_APP_ID", "\"${posthogAppId ?: ''}\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
         javaCompileOptions {
@@ -220,8 +220,8 @@ dependencies {
     implementation 'joda-time:joda-time:2.12.5'
     // Tasker Plugin
     implementation 'com.twofortyfouram:android-plugin-client-sdk-for-locale:4.0.3'
-    // Flurry
-    implementation 'com.flurry.android:analytics:14.4.0@aar'
+    // PostHog
+    implementation("com.posthog:posthog-android:3.1.15")
     // Bugly
     implementation 'com.tencent.bugly:crashreport:4.0.4'
     // 4.+ 合并了 不需要手动引入
