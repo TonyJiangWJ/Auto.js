@@ -43,7 +43,7 @@
             android:theme="@style/ScriptTheme.Transparent"/>
 
         <service
-            android:name="com.taobao.idlefish.AccessibilityService"
+            android:name="com.litiaotiao.app.AccessibilityService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:exported="false">
             <intent-filter>

@@ -1,4 +1,4 @@
-package com.taobao.idlefish
+package com.litiaotiao.app
 
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.os.Build

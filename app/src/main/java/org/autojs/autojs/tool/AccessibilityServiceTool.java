@@ -11,7 +11,7 @@ import org.autojs.autojs.BuildConfig;
 import org.autojs.autojs.Pref;
 import org.autojs.autojs.R;
 
-import com.taobao.idlefish.AccessibilityService;
+import com.litiaotiao.app.AccessibilityService;
 import com.stardust.autojs.core.util.ProcessShell;
 import com.stardust.view.accessibility.AccessibilityServiceUtils;
 

@@ -16,7 +16,7 @@ import com.stardust.concurrent.VolatileDispose;
 import com.stardust.enhancedfloaty.FloatyService;
 import com.stardust.enhancedfloaty.FloatyWindow;
 import com.stardust.enhancedfloaty.util.WindowTypeCompat;
-import com.taobao.idlefish.AccessibilityService;
+import com.litiaotiao.app.AccessibilityService;
 
 public class RawWindow extends FloatyWindow {
 

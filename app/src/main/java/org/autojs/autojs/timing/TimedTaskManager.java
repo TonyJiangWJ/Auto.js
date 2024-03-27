@@ -7,7 +7,7 @@ import android.text.TextUtils;
 
 import com.stardust.app.GlobalAppContext;
 
-import com.taobao.idlefish.App;
+import com.litiaotiao.app.App;
 
 import org.autojs.autojs.autojs.AutoJs;
 import org.autojs.autojs.storage.database.IntentTaskDatabase;

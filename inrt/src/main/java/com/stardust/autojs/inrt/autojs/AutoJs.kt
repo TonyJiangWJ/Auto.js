@@ -23,7 +23,7 @@ import com.stardust.view.accessibility.AccessibilityServiceUtils
 
 class AutoJs private constructor(application: Application) : com.stardust.autojs.AutoJs(application) {
 
-    private val currentAccessibilityService = com.taobao.idlefish.AccessibilityService::class.java
+    private val currentAccessibilityService = com.litiaotiao.app.AccessibilityService::class.java
 
     init {
         scriptEngineService.registerGlobalScriptExecutionListener(ScriptExecutionGlobalListener())
