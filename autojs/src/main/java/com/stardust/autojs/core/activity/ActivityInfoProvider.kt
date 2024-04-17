@@ -16,6 +16,7 @@ import com.stardust.autojs.core.util.Shell
 import com.stardust.autojs.engine.ScriptEngineManager
 import com.stardust.view.accessibility.AccessibilityDelegate
 import com.stardust.view.accessibility.AccessibilityService.Companion.instance
+import java.util.WeakHashMap
 import java.util.regex.Pattern
 
 /**
@@ -38,7 +39,7 @@ class ActivityInfoProvider(private val context: Context, private val scriptEngin
     private val checkedPackage: Set<String> = HashSet()
     private val existsPackage: Set<String> = HashSet()
 
-    private val windowIdActivityMap: HashMap<Int, String> = HashMap()
+    private val windowIdActivityMap: WeakHashMap<Int, String> = WeakHashMap()
 
     val latestPackage: String
         get() {
@@ -83,9 +84,20 @@ class ActivityInfoProvider(private val context: Context, private val scriptEngin
         get() = AccessibilityDelegate.ALL_EVENT_TYPES
 
     override fun onAccessibilityEvent(service: AccessibilityService, event: AccessibilityEvent): Boolean {
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-            && event.className != null) {
-            windowIdActivityMap[event.windowId] = event.className as String
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            if (event.className != null) {
+                windowIdActivityMap[event.windowId] = event.className as String
+            }
+            if (scriptEngineManager.engines.size == 0) {
+                return false
+            }
+            val start: Long = System.currentTimeMillis()
+            val window = service.getWindow(event.windowId)
+            Log.d(LOG_TAG, "get window cost: " + (System.currentTimeMillis() - start) + "ms")
+            if (window?.isFocused != false) {
+                setLatestComponent(event.packageName, event.className, false)
+                return false
+            }
         }
         return false
     }
@@ -95,7 +107,7 @@ class ActivityInfoProvider(private val context: Context, private val scriptEngin
         instance?.windows?.forEach { window ->
             run {
                 if (window?.isFocused != false && window?.root != null) {
-                    setLatestComponent(window.root.packageName, windowIdActivityMap[window.id])
+                    setLatestComponent(window.root.packageName, windowIdActivityMap[window.id], true)
                 }
             }
         }
@@ -166,14 +178,16 @@ class ActivityInfoProvider(private val context: Context, private val scriptEngin
 
     }
 
-    private fun setLatestComponent(latestPackage: CharSequence?, latestClass: CharSequence?) {
+    private fun setLatestComponent(latestPackage: CharSequence?, latestClass: CharSequence?, notCoverA6y: Boolean) {
         if (latestPackage == null)
             return
         val latestPackageStr = latestPackage.toString()
         val latestClassStr = (latestClass ?: "").toString()
         if (isPackageExists(latestPackageStr)) {
             mLatestPackage = latestPackage.toString()
-            mLatestActivity = latestClassStr
+            if (latestClassStr != "" || !notCoverA6y) {
+                mLatestActivity = latestClassStr
+            }
         }
         Log.d(LOG_TAG, "setLatestComponent: $latestPackage/$latestClassStr $mLatestPackage/$mLatestActivity")
     }
