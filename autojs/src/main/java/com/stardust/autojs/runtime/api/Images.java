@@ -108,12 +108,7 @@ public class Images {
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public synchronized ImageWrapper captureScreen() {
-        Log.d(TAG, "captureScreen: 请求截图 " + mScriptRuntime.get().loopers.getMainLooper().getThread().getName());
-        ScriptRuntime.requiresApi(21);
-        if (!GlobalScreenCapture.getInstance().hasPermission()) {
-            throw new SecurityException("No screen capture permission");
-        }
-        Image capture = GlobalScreenCapture.getInstance().capture();
+        Image capture = captureScreenRaw();
         if (capture == mPreCapture && mPreCaptureImage != null) {
             return mPreCaptureImage;
         }
@@ -121,8 +116,22 @@ public class Images {
         if (mPreCaptureImage != null) {
             mPreCaptureImage.recycle();
         }
+        long start = System.currentTimeMillis();
         mPreCaptureImage = ImageWrapper.ofImage(capture);
+        Log.d(TAG, "captureScreen: convert image cost: " + (System.currentTimeMillis() - start) + "ms");
         return mPreCaptureImage;
+    }
+
+    public synchronized Image captureScreenRaw() {
+        Log.d(TAG, "captureScreen: 请求截图 " + mScriptRuntime.get().loopers.getMainLooper().getThread().getName());
+        ScriptRuntime.requiresApi(21);
+        if (!GlobalScreenCapture.getInstance().hasPermission()) {
+            throw new SecurityException("No screen capture permission");
+        }
+        long start = System.currentTimeMillis();
+        Image capture = GlobalScreenCapture.getInstance().capture();
+        Log.d(TAG, "captureScreen: capture screen cost: " + (System.currentTimeMillis() - start) + "ms");
+        return capture;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)

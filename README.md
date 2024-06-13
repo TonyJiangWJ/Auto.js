@@ -30,6 +30,7 @@
   密码:b034
   ```
 - 对于x86版本请自行打包编译，PaddleOCR不支持x86
+- 增加了ncnn推理引擎，支持yolov8模型推理，8gen2 推理速度大概在50ms。存在问题是无法和Paddle-Lite兼容，也就是无法同时使用PaddleOCR和ncnn
 
 ### 不支持的功能包括但不限于
 

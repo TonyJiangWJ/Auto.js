@@ -119,4 +119,16 @@
         <url>https://gitee.com/agricultureiot/yolo-onnx-java</url>
         <license>Apache Software License 2.0</license>
     </notice>
+    <notice>
+        <name>ncnn</name>
+        <copyright>Copyright (C) 2017 THL A29 Limited, a Tencent company.</copyright>
+        <url>https://github.com/Tencent/ncnn</url>
+        <license>BSD-3-Clause</license>
+    </notice>
+    <notice>
+        <name>ncnn-android-yolov8</name>
+        <copyright>Copyright (c) FeiGeChuanShu</copyright>
+        <url>https://github.com/FeiGeChuanShu/ncnn-android-yolov8</url>
+        <license>NOT SPECIFIED</license>
+    </notice>
 </notices>

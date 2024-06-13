@@ -1,0 +1,6 @@
+.cxx/
+build/
+.idea/
+OpenCV-android-sdk/
+ncnn-20240410-android-vulkan/
+*.zip

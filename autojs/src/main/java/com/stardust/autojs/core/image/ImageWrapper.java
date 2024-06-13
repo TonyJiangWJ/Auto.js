@@ -14,6 +14,7 @@ import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Rect;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -64,7 +65,7 @@ public class ImageWrapper {
             return null;
         }
         if (OpenCVHelper.isInitialized()) {
-            return ofImageByMat(image);
+            return ofImageByMat(image, CvType.CV_8UC4);
         } else {
             return new ImageWrapper(toBitmap(image));
         }
@@ -106,7 +107,7 @@ public class ImageWrapper {
         return Bitmap.createBitmap(bitmap, 0, 0, image.getWidth(), image.getHeight());
     }
 
-    public static ImageWrapper ofImageByMat(Image image) {
+    public static ImageWrapper ofImageByMat(Image image, int cvType) {
 
         long start = System.currentTimeMillis();
 
@@ -141,6 +142,11 @@ public class ImageWrapper {
             Mat croppedImage = new Mat(mat, rect);
             mat.release();
             mat = croppedImage;
+        }
+        if (cvType != CvType.CV_8UC4) {
+            long convertStart = System.currentTimeMillis();
+            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGBA2RGB);
+            Log.d("ImageWrapper", "ofImageByMat: convert channel: " + (System.currentTimeMillis() - convertStart) + "ms");
         }
         Log.d("ImageWrapper", "ofImageByMat: create by mat cost: " + (System.currentTimeMillis() - start) + "ms");
         return new ImageWrapper(mat);
