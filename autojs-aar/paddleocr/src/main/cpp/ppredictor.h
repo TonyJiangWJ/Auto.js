@@ -27,6 +27,7 @@ public:
 
   virtual ~PPredictor() {}
 
+  void release();
   /**
    * init paddlitelite opt model，nb format ，or use ini_paddle
    * @param model_content

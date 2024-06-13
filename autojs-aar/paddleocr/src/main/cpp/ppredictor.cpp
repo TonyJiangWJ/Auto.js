@@ -6,6 +6,14 @@ PPredictor::PPredictor(int use_opencl, int thread_num, int net_flag,
                        paddle::lite_api::PowerMode mode)
     : _use_opencl(use_opencl), _thread_num(thread_num), _net_flag(net_flag), _mode(mode) {}
 
+void PPredictor::release() {
+  if (_predictor != nullptr) {
+    _predictor->TryShrinkMemory();
+    _predictor.reset();
+    _predictor = nullptr;
+  }
+}
+
 int PPredictor::init_nb(const std::string &model_content) {
   paddle::lite_api::MobileConfig config;
   config.set_model_from_buffer(model_content);

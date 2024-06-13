@@ -2,23 +2,15 @@ package com.stardust.autojs.core.opencv;
 
 import android.content.Context;
 
-import androidx.annotation.Nullable;
-
 import android.os.Looper;
-import android.util.Log;
-
-import com.afollestad.materialdialogs.MaterialDialog;
-import com.stardust.app.DialogUtils;
-
-import org.opencv.android.InstallCallbackInterface;
-import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
 
 
 /**
  * Created by Stardust on 2018/4/2.
  */
-
 public class OpenCVHelper {
 
     public interface InitializeCallback {
@@ -32,13 +24,13 @@ public class OpenCVHelper {
         return new MatOfPoint(mat);
     }
 
-    public static void release(@Nullable MatOfPoint mat) {
+    public static void release(MatOfPoint mat) {
         if (mat == null)
             return;
         mat.release();
     }
 
-    public static void release(@Nullable Mat mat) {
+    public static void release(Mat mat) {
         if (mat == null)
             return;
         mat.release();
