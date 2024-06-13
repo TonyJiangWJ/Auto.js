@@ -29,6 +29,8 @@ import org.mozilla.javascript.ast.Loop;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 import androidx.annotation.Nullable;
 
@@ -63,6 +65,10 @@ public class GlobalScreenCapture {
 
     private boolean hasPermission;
     private boolean noRegister;
+
+    private ReentrantLock captureLock = new ReentrantLock();
+
+    private Condition captureComplete = captureLock.newCondition();
 
     @SuppressLint("StaticFieldLeak")
     private static volatile GlobalScreenCapture INSTANCE;
@@ -234,11 +240,17 @@ public class GlobalScreenCapture {
                 if (noRegister) {
                     return;
                 }
-                Image oldCacheImage = mCachedImage.getAndSet(null);
-                if (oldCacheImage != null) {
-                    oldCacheImage.close();
+                captureLock.lock();
+                try {
+                    Image oldCacheImage = mCachedImage.getAndSet(null);
+                    if (oldCacheImage != null) {
+                        oldCacheImage.close();
+                    }
+                    mCachedImage.set(reader.acquireLatestImage());
+                    captureComplete.signal();
+                } finally {
+                    captureLock.unlock();
                 }
-                mCachedImage.set(reader.acquireLatestImage());
             } catch (Exception e) {
                 mException = e;
             }
@@ -257,13 +269,26 @@ public class GlobalScreenCapture {
         long startTime = System.currentTimeMillis();
         int retryLimit = 5;
         while (!thread.isInterrupted()) {
-            Image cachedImage = mCachedImage.getAndSet(null);
+            Image cachedImage = getCachedImage();
             if (cachedImage != null) {
-                if (mUnderUsingImage != null) {
-                    mUnderUsingImage.close();
-                }
-                mUnderUsingImage = cachedImage;
                 return cachedImage;
+            } else {
+                Log.d(TAG, "capture: 加锁等待获取截图");
+                long waitStart = System.currentTimeMillis();
+                captureLock.lock();
+                try {
+                    captureComplete.await();
+                    Log.d(TAG, "capture: 获取到截图信号，等待耗时：" + (System.currentTimeMillis() - waitStart) + "ms");
+                    cachedImage = getCachedImage();
+                    if (cachedImage != null) {
+                        return cachedImage;
+                    }
+                    Log.d(TAG, "capture: 获取到截图信号，但是图片已经被其他脚本获取 重新获取");
+                } catch (InterruptedException ex) {
+                    throw new ScriptInterruptedException();
+                } finally {
+                    captureLock.unlock();
+                }
             }
             if (System.currentTimeMillis() - startTime > 1000) {
                 startTime = System.currentTimeMillis();
@@ -275,8 +300,21 @@ public class GlobalScreenCapture {
                     break;
                 }
             }
+
         }
         throw new ScriptInterruptedException();
+    }
+
+    private Image getCachedImage() {
+        Image cachedImage = mCachedImage.getAndSet(null);
+        if (cachedImage != null) {
+            if (mUnderUsingImage != null) {
+                mUnderUsingImage.close();
+            }
+            mUnderUsingImage = cachedImage;
+            return cachedImage;
+        }
+        return null;
     }
 
     public synchronized void unregister(ScriptRuntime runtime) {

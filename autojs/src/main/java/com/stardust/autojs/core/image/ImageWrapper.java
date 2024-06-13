@@ -11,6 +11,8 @@ import com.stardust.autojs.core.opencv.OpenCVHelper;
 import com.stardust.pio.UncheckedIOException;
 
 import org.opencv.android.Utils;
+import org.opencv.core.CvType;
+import org.opencv.core.Rect;
 import org.opencv.imgcodecs.Imgcodecs;
 
 import java.io.FileNotFoundException;
@@ -61,7 +63,11 @@ public class ImageWrapper {
         if (image == null) {
             return null;
         }
-        return new ImageWrapper(toBitmap(image));
+        if (OpenCVHelper.isInitialized()) {
+            return ofImageByMat(image);
+        } else {
+            return new ImageWrapper(toBitmap(image));
+        }
     }
 
     public static ImageWrapper ofMat(Mat mat) {
@@ -98,6 +104,47 @@ public class ImageWrapper {
             return bitmap;
         }
         return Bitmap.createBitmap(bitmap, 0, 0, image.getWidth(), image.getHeight());
+    }
+
+    public static ImageWrapper ofImageByMat(Image image) {
+
+        long start = System.currentTimeMillis();
+
+        // 获取Image的平面
+        Image.Plane[] planes = image.getPlanes();
+        Log.d("ImageWrapper", "ofImageByMat: planes.length: " + planes.length);
+        // 获取Image的宽高
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        Log.d("ImageWrapper", "ofImageByMat: width:" + width + " height:" + height);
+        Image.Plane plane = planes[0];
+        // 获取平面的数据缓冲区
+        ByteBuffer buffer = planes[0].getBuffer();
+        // 创建一个byte数组来存储缓冲区的数据
+        byte[] bytes = new byte[buffer.remaining()];
+        buffer.position(0);
+        int pixelStride = plane.getPixelStride();
+        int rowPadding = plane.getRowStride() - pixelStride * image.getWidth();
+        // 将数据从缓冲区拷贝到byte数组
+        buffer.get(bytes);
+
+        // 创建一个Mat对象
+        Mat mat = new Mat(height, width + rowPadding / pixelStride, CvType.CV_8UC4);
+        // 将byte数组拷贝到Mat对象
+        mat.put(0, 0, bytes);
+        if (width != mat.width()) {
+            Log.d("ImageWrapper", "ofImageByMat: mat width is not valid: " + mat.width() + " => " + width);
+            // 定义裁切区域
+            Rect rect = new Rect(0, 0, width, height);
+            // 裁切图像
+            Mat croppedImage = new Mat(mat, rect);
+            mat.release();
+            mat = croppedImage;
+        }
+        Log.d("ImageWrapper", "ofImageByMat: create by mat cost: " + (System.currentTimeMillis() - start) + "ms");
+        return new ImageWrapper(mat);
+
     }
 
     public int getWidth() {
