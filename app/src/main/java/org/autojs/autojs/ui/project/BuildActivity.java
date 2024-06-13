@@ -105,9 +105,6 @@ public class BuildActivity extends BaseActivity implements ApkBuilder.ProgressCa
     @ViewById(R.id.use_ml_kit_ocr)
     CheckBox mUseMlKitOcr;
 
-    @ViewById(R.id.use_tess_two)
-    CheckBox mUseTessTwo;
-
     @ViewById(R.id.use_onnx_runtime)
     CheckBox mUseOnnx;
 
@@ -352,7 +349,6 @@ public class BuildActivity extends BaseActivity implements ApkBuilder.ProgressCa
         appConfig.setUseOpenCv(mUseOpenCv.isChecked());
         appConfig.setUsePaddleOcr(mUsePaddleOcr.isChecked());
         appConfig.setUseMlKitOcr(mUseMlKitOcr.isChecked());
-        appConfig.setUseTessTwo(mUseTessTwo.isChecked());
         appConfig.setUseOnnx(mUseOnnx.isChecked());
         Set<String> enabledPermission = new HashSet<>();
         for (Option option : options) {
