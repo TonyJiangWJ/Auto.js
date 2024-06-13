@@ -21,6 +21,14 @@
 - 重新整理了部分代码结构，更新了gradle到7.x, 更新了其他依赖包版本不详细罗列。
 - 修复了其他的不痛不痒的缺陷。
 - 如果脚本需要防止类似淘宝的无障碍检测，请使用 `AutoJs.fakeIdlefish`。可以规避无障碍检测，将包名直接改成闲鱼的包名，加了个.x的后缀 `com.taobao.idlefish.x`。代码分支为 [fake_idlefish](https://github.com/TonyJiangWJ/Auto.js/tree/fake_idlefish)
+- 完善了一下打包功能，增加V2签名避免报毒。打包插件见仓库：[Auto.js-ApkBuilder](https://github.com/TonyJiangWJ/Auto.js-ApkBuilder)
+- 安装包下载路径，蓝奏云：
+  ```
+  https://wwxs.lanzouq.com/b042le51i
+  密码:b034
+  ```
+- 对于x86版本请自行打包编译，PaddleOCR不支持x86
+- 增加了ncnn推理引擎，支持yolov8模型推理，8gen2 推理速度大概在50ms。存在问题是无法和Paddle-Lite兼容，也就是无法同时使用PaddleOCR和ncnn
 
 ### 不支持的功能包括但不限于
 

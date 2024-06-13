@@ -46,7 +46,21 @@ class OCR_PPredictor : public PPredictor_Interface {
 public:
   OCR_PPredictor(const OCR_Config &config);
 
-  virtual ~OCR_PPredictor() {}
+  virtual ~OCR_PPredictor() {
+    if (_det_predictor != nullptr) {
+      _det_predictor->release();
+      _det_predictor = nullptr;
+    }
+    if (_rec_predictor != nullptr) {
+      _rec_predictor->release();
+      _rec_predictor = nullptr;
+    }
+    if (_cls_predictor != nullptr) {
+      _cls_predictor->release();
+      _cls_predictor = nullptr;
+    }
+    LOGI("ocr PPredictor points released");
+  }
 
   /**
    * 初始化二个模型的Predictor

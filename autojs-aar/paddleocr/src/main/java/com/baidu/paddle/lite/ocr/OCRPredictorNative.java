@@ -3,7 +3,9 @@ package com.baidu.paddle.lite.ocr;
 import android.graphics.Bitmap;
 import android.util.Log;
 
-import org.opencv.android.OpenCVLoader;
+import com.stardust.autojs.core.opencv.OpenCVHelper;
+
+//import org.opencv.android.OpenCVLoader;
 
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -18,7 +20,10 @@ public class OCRPredictorNative {
         if (!isSOLoaded.get() && isSOLoaded.compareAndSet(false, true)) {
             try {
                 // 可能和AJ中的OpenCV冲突，直接初始化一遍
-                OpenCVLoader.initDebug();
+//                OpenCVLoader.initDebug();
+                OpenCVHelper.initIfNeeded(null, () -> {
+                    Log.d("OCRPredictorNative", "loadLibrary: opencv initialized");
+                });
                 System.loadLibrary("Native");
             } catch (Throwable e) {
                 throw new RuntimeException(

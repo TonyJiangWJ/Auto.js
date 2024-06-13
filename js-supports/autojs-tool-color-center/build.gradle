@@ -61,5 +61,5 @@ task dexJar(type: Exec) {
 dependencies {
     implementation project(path: ':autojs')
     testImplementation "junit:junit:$junit_version"
-    implementation 'com.rmtheis:tess-two:9.1.0'
+//    implementation 'com.rmtheis:tess-two:9.1.0'
 }

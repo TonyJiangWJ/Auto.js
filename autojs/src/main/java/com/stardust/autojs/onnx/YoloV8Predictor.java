@@ -7,8 +7,8 @@ import com.google.gson.Gson;
 import com.stardust.autojs.onnx.domain.DetectResult;
 import com.stardust.autojs.onnx.domain.Detection;
 import com.stardust.autojs.onnx.util.Letterbox;
+import com.stardust.autojs.runtime.api.YoloPredictor;
 
-import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
@@ -37,45 +37,29 @@ import androidx.annotation.RequiresApi;
  * transfer from https://gitee.com/agricultureiot/yolo-onnx-java
  */
 @RequiresApi(api = Build.VERSION_CODES.N)
-public class YoloV8Predictor {
+public class YoloV8Predictor extends YoloPredictor {
     private static final String TAG = "YoloV8Predictor";
-
-    static {
-        OpenCVLoader.initDebug();
-    }
 
     private final String modelPath;
 
-    private float confThreshold = 0.35F;
-    private float nmsThreshold = 0.55F;
     private boolean tryNpu;
     private Size shapeSize = new Size(640, 640);
     private Letterbox letterbox;
 
-    private List<String> labels = new ArrayList<>();
     private List<String> apiFlags = Arrays.asList("CPU_DISABLED");
 
     public YoloV8Predictor(String modelPath) {
         this.modelPath = modelPath;
+        init = true;
     }
 
     public YoloV8Predictor(String modelPath, float confThreshold, float nmsThreshold) {
         this.modelPath = modelPath;
         this.confThreshold = confThreshold;
         this.nmsThreshold = nmsThreshold;
+        init = true;
     }
 
-    public void setConfThreshold(float confThreshold) {
-        this.confThreshold = confThreshold;
-    }
-
-    public void setNmsThreshold(float nmsThreshold) {
-        this.nmsThreshold = nmsThreshold;
-    }
-
-    public void setLabels(List<String> labels) {
-        this.labels = labels;
-    }
 
     public void setShapeSize(double width, double height) {
         this.shapeSize = new Size(width, height);
@@ -145,10 +129,9 @@ public class YoloV8Predictor {
         Mat image = img.clone();
         // 将四通道转换为三通道
         if (image.channels() == 4) {
-            Imgproc.cvtColor(image, image, Imgproc.COLOR_RGBA2BGR);
+            Imgproc.cvtColor(image, image, Imgproc.COLOR_RGBA2RGB);
         }
         Log.d(TAG, "preprocessImage: image's channels: " + image.channels());
-        Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2RGB);
         // 更改 image 尺寸
         letterbox = new Letterbox();
         letterbox.setNewShape(this.shapeSize);
@@ -234,7 +217,7 @@ public class YoloV8Predictor {
         // 运行推理
         OrtSession.Result output = session.run(preprocessImage(image));
         List<Detection> detections = postProcessOutput(output);
-        System.out.printf("time：%d ms.\n", (System.currentTimeMillis() - start_time));
+        Log.d("YoloV8Predictor", String.format("onnx predict cost: %d ms", (System.currentTimeMillis() - start_time)));
         return detections.stream().map(detection -> new DetectResult(detection, letterbox))
                 .collect(Collectors.toList());
     }

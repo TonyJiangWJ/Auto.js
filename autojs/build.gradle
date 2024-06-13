@@ -55,6 +55,7 @@ dependencies {
     api 'com.makeramen:roundedimageview:2.3.0'
     // OpenCv
     api project(path: ':autojs-aar:opencv')
+    api project(path: ':autojs-aar:opencvhelper')
     // OkHttp
     api 'com.squareup.okhttp3:okhttp:3.14.9'
     // JDeferred
@@ -77,9 +78,10 @@ dependencies {
     api project(path: ':autojs-aar:term')
     api project(path: ':autojs-aar:rhino-jdk7')
     api project(path: ':autojs-aar:paddleocr')
+    api project(path: ':autojs-aar:yolov8ncnn')
     api project(path: ':common')
     api project(path: ':automator')
-    implementation 'com.rmtheis:tess-two:9.1.0'
+//    implementation 'com.rmtheis:tess-two:9.1.0'
     implementation 'com.google.mlkit:text-recognition-chinese:16.0.0'
     implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.15.1'
 }

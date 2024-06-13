@@ -1,5 +1,6 @@
 package com.stardust.autojs.onnx.domain;
 
+import android.graphics.Rect;
 import com.stardust.autojs.onnx.util.Letterbox;
 
 /**
@@ -15,6 +16,9 @@ public class DetectResult {
     private double top;
     private double right;
     private double bottom;
+
+    private Rect bounds;
+
     private float confidence;
 
     public DetectResult() {
@@ -31,6 +35,7 @@ public class DetectResult {
         right = (detection.getBbox()[2] - dw) / ratio;
         top = (detection.getBbox()[1] - dh) / ratio;
         bottom = (detection.getBbox()[3] - dh) / ratio;
+        bounds = new Rect((int) left, (int) top, (int) right, (int) bottom);
     }
 
     public String getLabel() {
@@ -87,5 +92,17 @@ public class DetectResult {
 
     public void setConfidence(float confidence) {
         this.confidence = confidence;
+    }
+
+    public Rect getBounds() {
+        return bounds;
+    }
+
+    public void setBounds(Rect bounds) {
+        this.bounds = bounds;
+    }
+
+    public void buildRect() {
+        bounds = new Rect((int) left, (int) top, (int) right, (int) bottom);
     }
 }

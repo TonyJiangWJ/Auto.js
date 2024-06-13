@@ -91,11 +91,15 @@ public class ColorFinder {
         if (nonZeroPos.rows() == 0 || nonZeroPos.cols() == 0) {
             result = null;
         } else {
-            result = OpenCVHelper.newMatOfPoint(nonZeroPos);
+            result = newMatOfPoint(nonZeroPos);
         }
         OpenCVHelper.release(bi);
         OpenCVHelper.release(nonZeroPos);
         return result;
+    }
+
+    public static MatOfPoint newMatOfPoint(org.opencv.core.Mat mat) {
+        return new MatOfPoint(mat);
     }
 
     public Point findMultiColors(ImageWrapper image, int firstColor, int threshold, Rect rect, int[] points) {

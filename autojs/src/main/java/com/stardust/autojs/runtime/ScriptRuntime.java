@@ -39,6 +39,7 @@ import com.stardust.autojs.runtime.api.Sensors;
 import com.stardust.autojs.runtime.api.Threads;
 import com.stardust.autojs.runtime.api.Timers;
 import com.stardust.autojs.runtime.api.UI;
+import com.stardust.autojs.runtime.api.Yolo;
 import com.stardust.autojs.runtime.exception.ScriptEnvironmentException;
 import com.stardust.autojs.runtime.exception.ScriptException;
 import com.stardust.autojs.runtime.exception.ScriptInterruptedException;
@@ -205,6 +206,9 @@ public class ScriptRuntime {
     @ScriptVariable
     public WrappedShizuku shizuku;
 
+    @ScriptVariable
+    public Yolo yolo;
+
     private Images images;
 
     private static WeakReference<Context> applicationContext;
@@ -239,6 +243,9 @@ public class ScriptRuntime {
         ocr = new OCR();
         mlKitOCR = new MlKitOCR();
         shizuku = WrappedShizuku.getInstance();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            yolo = new Yolo();
+        }
     }
 
     public void init() {
