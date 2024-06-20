@@ -200,10 +200,15 @@ public class GlobalScreenCapture {
 
     private void grantMediaProjection() {
         try {
+            MediaProjection newMediaProjection = mProjectionManager.getMediaProjection(Activity.RESULT_OK, (Intent) mData.clone());
+            if (newMediaProjection == null) {
+                Log.d(TAG, "grantMediaProjection: 获取新projection失败");
+                return;
+            }
             if (mMediaProjection != null) {
                 mMediaProjection.stop();
             }
-            mMediaProjection = mProjectionManager.getMediaProjection(Activity.RESULT_OK, (Intent) mData.clone());
+            mMediaProjection = newMediaProjection;
         } catch (Exception e) {
             Log.d(TAG, "grantMediaProjection: 获取新projection失败 可能只是MIUI的bug " + e);
             release();
@@ -212,6 +217,12 @@ public class GlobalScreenCapture {
 
     @SuppressLint("WrongConstant")
     private void initVirtualDisplay(int width, int height, int screenDensity) {
+        if (mMediaProjection == null) {
+            grantMediaProjection();
+            if (mMediaProjection == null) {
+                throw new IllegalStateException("mediaProjection 初始化失败，无法刷新");
+            }
+        }
         Log.d(TAG, "initVirtualDisplay: width:" + width + ",height:" + height + ",density:" + screenDensity);
         mImageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 3);
         try {
