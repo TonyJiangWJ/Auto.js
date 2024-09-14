@@ -53,6 +53,7 @@ class NodeInfo(resources: Resources?, node: UiObject, var parent: NodeInfo?) {
     var focused: Boolean = false
     var visibleToUser: Boolean = false
     var indexInParent: Int = 0
+    var hidden: Boolean = false
 
 
     init {
@@ -110,6 +111,7 @@ class NodeInfo(resources: Resources?, node: UiObject, var parent: NodeInfo?) {
     override fun toString(): String {
         return className + "{" +
                 "childCount=" + children.size +
+                ", hidden=" + hidden +
                 ", mBoundsInScreen=" + boundsInScreen +
                 ", mBoundsInParent=" + boundsInParent +
                 ", id='" + id + '\''.toString() +

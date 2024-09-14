@@ -10,11 +10,14 @@ import android.os.Build;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.stardust.view.accessibility.NodeInfo;
 import com.stardust.util.ViewUtil;
+
+import org.autojs.autojs.BuildConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,6 +28,7 @@ import java.util.List;
  */
 
 public class LayoutBoundsView extends View {
+    private static final String TAG = "LayoutBoundsView";
 
     private static final int COLOR_SHADOW = 0x6a000000;
     private NodeInfo mRootNode;
@@ -66,8 +70,25 @@ public class LayoutBoundsView extends View {
     }
 
     public void setRootNode(NodeInfo rootNode) {
+        Log.d(TAG, "setRootNode: ");
+        displayNodeLayout(rootNode, 0);
         mRootNode = rootNode;
         mTouchedNode = null;
+    }
+
+    private void displayNodeLayout(NodeInfo rootNode, int depth) {
+        if (!BuildConfig.DEBUG) {
+            return;
+        }
+        if (rootNode == null) {
+            return;
+        }
+        if (!rootNode.getHidden()) {
+            Log.d(TAG, String.format("%s%s", String.join("", Collections.nCopies(depth, "-")), rootNode));
+        }
+        for (NodeInfo child : rootNode.getChildren()) {
+            displayNodeLayout(child, depth + 1);
+        }
     }
 
 
@@ -129,7 +150,9 @@ public class LayoutBoundsView extends View {
     private void draw(Canvas canvas, NodeInfo node) {
         if (node == null)
             return;
-        drawRect(canvas, node.getBoundsInScreen(), mStatusBarHeight, mBoundsPaint);
+        if (!node.getHidden()) {
+            drawRect(canvas, node.getBoundsInScreen(), mStatusBarHeight, mBoundsPaint);
+        }
         for (NodeInfo child : node.getChildren()) {
             draw(canvas, child);
         }
@@ -143,6 +166,7 @@ public class LayoutBoundsView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        Log.d(TAG, String.format("onTouchEvent: %d, %d", (int) event.getRawX(), (int) event.getRawY()));
         if (mRootNode != null) {
             setSelectedNode(findNodeAt(mRootNode, (int) event.getRawX(), (int) event.getRawY()));
         }
@@ -162,10 +186,13 @@ public class LayoutBoundsView extends View {
 
     private NodeInfo findNodeAt(NodeInfo node, int x, int y) {
         ArrayList<NodeInfo> list = new ArrayList<>();
+        displayNodeLayout(node, 0);
         findNodeAt(node, x, y, list);
         if (list.isEmpty()) {
+            Log.d(TAG, "findNode is empty");
             return null;
         }
+        Log.d(TAG, "findNodeAt: list size:" + list.size());
         return Collections.min(list, (o1, o2) ->
                 o1.getBoundsInScreen().width() * o1.getBoundsInScreen().height() -
                         o2.getBoundsInScreen().width() * o2.getBoundsInScreen().height());
@@ -173,11 +200,17 @@ public class LayoutBoundsView extends View {
 
 
     private void findNodeAt(NodeInfo node, int x, int y, List<NodeInfo> list) {
+        if (node == null) {
+            return;
+        }
+        if (BuildConfig.DEBUG && !node.getHidden()) {
+            Log.d(TAG, String.format("%s child: %s", String.join("", Collections.nCopies(node.getDepth(), "-")), node));
+        }
+        if (node.getBoundsInScreen().contains(x, y) && !node.getHidden()) {
+            list.add(node);
+        }
         for (NodeInfo child : node.getChildren()) {
-            if (child != null && child.getBoundsInScreen().contains(x, y)) {
-                list.add(child);
-                findNodeAt(child, x, y, list);
-            }
+            findNodeAt(child, x, y, list);
         }
     }
 
@@ -189,5 +222,27 @@ public class LayoutBoundsView extends View {
 
     public int getStatusBarHeight() {
         return mStatusBarHeight;
+    }
+
+    public void hideAllBoundsSameNode(NodeInfo targetNode) {
+        if (mRootNode == null || targetNode == null) {
+            return;
+        }
+        hideNodes(mRootNode, targetNode);
+    }
+
+    private void hideNodes(NodeInfo parent, NodeInfo targetNode) {
+        if (parent == null) {
+            return;
+        }
+        if (parent.getBoundsInScreen().equals(targetNode.getBoundsInScreen())) {
+            parent.setHidden(true);
+        }
+        if (parent.getChildren().size() == 0) {
+            return;
+        }
+        for (NodeInfo child : parent.getChildren()) {
+            hideNodes(child, targetNode);
+        }
     }
 }
