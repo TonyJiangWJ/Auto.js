@@ -28,11 +28,14 @@
 -dontwarn java.lang.invoke.*
 -dontwarn **$$Lambda$*
 
+-keepnames class com.stardust.autojs.onnx.YoloV8Predictor
+
 -keep class org.mozilla.javascript.** { *; }
 -keep class com.jecelyin.editor.** { *; }
 -keep class com.stardust.automator.** { *; }
 -keep class com.stardust.autojs.** { *; }
 -keep class org.greenrobot.eventbus.** { *; }
+-keep class org.autojs.autojs.** {*;}
 -keep class * extends c
 -keepattributes *Annotation*
 # Event bus
@@ -139,3 +142,15 @@
 
 -dontwarn com.tencent.bugly.**
 -keep public class com.tencent.bugly.**{*;}
+
+# OnnxRuntime
+-dontwarn ai.onnxruntime.**
+-keep public class ai.onnxruntime.**{*;}
+
+# okHttp3
+-dontwarn okhttp3.**
+-keep public class okhttp3.**{*;}
+
+# paddleocr
+-dontwarn com.baidu.paddle.lite.ocr.**
+-keep public class com.baidu.paddle.lite.ocr.**{*;}
