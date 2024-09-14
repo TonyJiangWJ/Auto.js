@@ -103,7 +103,8 @@ public class Yolo {
             Images images = (Images)runtime.getImages();
             Image image = images.captureScreenRaw();
             if (image != null) {
-                ImageWrapper imageWrapper = ImageWrapper.ofImageByMat(image, CvType.CV_8UC3);
+                ImageWrapper imageWrapper = ImageWrapper.ofImageByMat(image, CvType.CV_8UC4);
+                image.close();
                 Mat mat = imageWrapper.getMat();
                 if (rect != null) {
                     // 裁切图像

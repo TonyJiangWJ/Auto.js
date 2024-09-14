@@ -31,11 +31,13 @@ module.exports = function(runtime, global) {
     let region = options.region
     if (region) {
       let r = buildRegion(region, img)
-      let o = img
       img = images.clip(img, r.x, r.y, r.width, r.height)
-      o.recycle()
     }
     let text = javaOcr.recognizeText(img, options.cpuThreadNum || 4, options.useSlim || true)
+    if (region) {
+      // 进行过区域截取，需要回收截取的图片 原始图片由外部管理
+      img.recycle()
+    }
     if (text) {
       return JSON.parse(JSON.stringify(text))
     }
@@ -47,13 +49,15 @@ module.exports = function(runtime, global) {
     let region = options.region
     if (region) {
       let r = buildRegion(region, img)
-      let o = img
       img = images.clip(img, r.x, r.y, r.width, r.height)
-      o.recycle()
     }
     let resultList = runtime.bridges.bridges.toArray(javaOcr.detect(img, options.cpuThreadNum || 4, options.useSlim || true))
     if (region && region.length > 1 && resultList && resultList.length > 0) {
       resultList.forEach(r => r.bounds.offset(region[0], region[1]))
+    }
+    if (region) {
+      // 进行过区域截取，需要回收截取的图片 原始图片由外部管理
+      img.recycle()
     }
     return resultList
   }

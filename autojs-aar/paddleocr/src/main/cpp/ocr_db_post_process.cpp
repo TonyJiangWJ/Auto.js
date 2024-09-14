@@ -64,6 +64,13 @@ static cv::RotatedRect unclip(float **box) {
 
   return res;
 }
+// 用于动态释放内存 避免内存泄露
+static void free_array(float **array, int rows) {
+  for (int i = 0; i < rows; ++i) {
+    delete[] array[i];
+  }
+  delete[] array;
+}
 
 static float **Mat2Vec(cv::Mat mat) {
   auto **array = new float *[mat.rows];
@@ -267,6 +274,7 @@ boxes_from_bitmap(const cv::Mat &pred, const cv::Mat &bitmap) {
     // end get_mini_box
 
     if (ssid < min_size) {
+      free_array(array, 4);
       continue;
     }
 
@@ -274,6 +282,7 @@ boxes_from_bitmap(const cv::Mat &pred, const cv::Mat &bitmap) {
     score = box_score_fast(array, pred);
     // end box_score_fast
     if (score < box_thresh) {
+      free_array(array, 4);
       continue;
     }
 
@@ -284,8 +293,11 @@ boxes_from_bitmap(const cv::Mat &pred, const cv::Mat &bitmap) {
     cv::RotatedRect clipbox = points;
     auto cliparray = get_mini_boxes(clipbox, ssid);
 
-    if (ssid < min_size + 2)
+    if (ssid < min_size + 2) {
+      free_array(array, 4);
+      free_array(cliparray, 4);
       continue;
+    }
 
     int dest_width = pred.cols;
     int dest_height = pred.rows;
@@ -301,6 +313,8 @@ boxes_from_bitmap(const cv::Mat &pred, const cv::Mat &bitmap) {
       intcliparray.emplace_back(std::move(a));
     }
     boxes.emplace_back(std::move(intcliparray));
+    free_array(array, 4);
+    free_array(cliparray, 4);
 
   } // end for
   return boxes;

@@ -45,7 +45,9 @@
         android:requestLegacyExternalStorage="true"
         tools:replace="android:label, android:icon, android:allowBackup"
         tools:targetApi="m">
-
+        <!-- 开启内存分析 -->
+        <profileable android:shell="true" android:enabled="true"
+            tools:targetApi="q" />
         <meta-data
             android:name="android.max_aspect"
             android:value="2.1"/>
