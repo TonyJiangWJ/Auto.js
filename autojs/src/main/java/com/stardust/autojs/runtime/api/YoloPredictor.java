@@ -57,4 +57,10 @@ public class YoloPredictor {
     public void release() {
 
     }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        release();
+    }
 }

@@ -1,5 +1,6 @@
 module.exports = function (runtime, global) {
   let yoloCreator = runtime.yolo
+  let instanceList = []
   let $yolo = function () {
     this.enabled = false
   }
@@ -29,6 +30,7 @@ module.exports = function (runtime, global) {
       }
       this.yoloInstance = yoloCreator.createNcnn(options.paramPath, options.binPath, convertToList(options.labels), options.imageSize, !!options.useGpu);
       this.enabled = this.yoloInstance.isInit();
+      instanceList.push(this.yoloInstance)
     } else {
       this.type = 'onnx';
 
@@ -39,6 +41,7 @@ module.exports = function (runtime, global) {
       }
       this.yoloInstance = yoloCreator.createOnnx(options.modelPath, convertToList(options.labels), options.imageSize);
       this.enabled = this.yoloInstance != null;
+      instanceList.push(this.yoloInstance)
     }
 
     if (this.enabled) {
@@ -60,9 +63,7 @@ module.exports = function (runtime, global) {
     }
     if (region) {
       let r = buildRegion(region, img)
-      let o = img
       img = images.clip(img, r.x, r.y, r.width, r.height)
-      o.recycle()
     }
     let resultList = util.java.toJsArray(this.yoloInstance.predictYolo(img.mat))
     if (region) {
@@ -93,6 +94,12 @@ module.exports = function (runtime, global) {
   }
 
   return $yolo;
+
+  events.on('exit', function () {
+    if (instanceList.length > 0) {
+        instanceList.forEach(instance => instance.release())
+    }
+  })
 
   function wrapForward (yoloInstance) {
     return {

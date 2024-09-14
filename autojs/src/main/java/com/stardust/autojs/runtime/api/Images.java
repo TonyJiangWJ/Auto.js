@@ -118,6 +118,7 @@ public class Images {
         }
         long start = System.currentTimeMillis();
         mPreCaptureImage = ImageWrapper.ofImage(capture);
+        capture.close();
         Log.d(TAG, "captureScreen: convert image cost: " + (System.currentTimeMillis() - start) + "ms");
         return mPreCaptureImage;
     }

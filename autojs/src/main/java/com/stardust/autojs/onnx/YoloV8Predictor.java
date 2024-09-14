@@ -9,6 +9,7 @@ import com.stardust.autojs.onnx.domain.Detection;
 import com.stardust.autojs.onnx.util.Letterbox;
 import com.stardust.autojs.runtime.api.YoloPredictor;
 
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
@@ -17,11 +18,14 @@ import org.opencv.imgproc.Imgproc;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import ai.onnxruntime.OnnxTensor;
@@ -39,6 +43,8 @@ import androidx.annotation.RequiresApi;
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class YoloV8Predictor extends YoloPredictor {
     private static final String TAG = "YoloV8Predictor";
+    private static final Pattern IMG_SIZE_PATTERN = Pattern.compile("\\[(\\d+), \\d+]");
+    private static final Pattern LABEL_PATTERN = Pattern.compile("'([^']*)'");
 
     private final String modelPath;
 
@@ -95,7 +101,52 @@ public class YoloV8Predictor extends YoloPredictor {
                 throw new RuntimeException(e);
             }
         });
+        // 如果入参labels无效或未定义，使用模型内置labels
+        if (labels == null || labels.size() == 0) {
+            labels = initLabels(session);
+        }
+        initShapeSize(session);
     }
+
+    private List<String> initLabels(OrtSession session) throws OrtException {
+        String meteStr = session.getMetadata().getCustomMetadata().get("names");
+        if (meteStr == null) {
+            Log.d(TAG, "initLabels: 读取names失败 无法自动修正labels");
+            return Collections.emptyList();
+        }
+        String[] labels = new String[meteStr.split(",").length];
+
+        Matcher matcher = LABEL_PATTERN.matcher(meteStr);
+
+        int h = 0;
+        while (matcher.find()) {
+            labels[h] = matcher.group(1);
+            h++;
+        }
+        return Arrays.asList(labels);
+    }
+
+    private void initShapeSize(OrtSession session) throws OrtException {
+        String meteStr = session.getMetadata().getCustomMetadata().get("imgsz");
+        Log.d(TAG, "initShapeSize: " + meteStr);
+        if (meteStr == null) {
+            Log.d(TAG, "initShapeSize: 读取imgsz失败 无法自动修正输入大小");
+            return;
+        }
+        Matcher matcher = IMG_SIZE_PATTERN.matcher(meteStr);
+        if (matcher.find()) {
+            String shapeSize = matcher.group(1);
+            if (shapeSize == null) {
+                Log.d(TAG, "initShapeSize: 读取imgsz格式异常 无法自动修正输入大小");
+                return;
+            }
+            this.shapeSize = new Size(Double.parseDouble(shapeSize), Double.parseDouble(shapeSize));
+            Log.d(TAG, "set shape size: " + shapeSize);
+        } else {
+            Log.d(TAG, "initShapeSize: 读取imgsz格式异常 无法自动修正输入大小");
+        }
+    }
+
 
     private void addNNApiProvider(OrtSession.SessionOptions sessionOptions) {
         if (!tryNpu) {
@@ -140,19 +191,26 @@ public class YoloV8Predictor extends YoloPredictor {
         int rows = letterbox.getHeight();
         int cols = letterbox.getWidth();
         int channels = image.channels();
+        // 转换Mat对象的数据类型为CV_64F，即64位浮点型
+        Mat convertedImage = new Mat();
+        image.convertTo(convertedImage, CvType.CV_64F);
 
-        // 将Mat对象的像素值赋值给Float[]对象
+        // 获取整个像素数据
+        double[] pixelData = new double[rows * cols * channels];
+        convertedImage.get(0, 0, pixelData);
+
         float[] pixels = new float[channels * rows * cols];
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                double[] pixel = image.get(j, i);
                 for (int k = 0; k < channels; k++) {
                     // 这样设置相当于同时做了image.transpose((2, 0, 1))操作
-                    pixels[rows * cols * k + j * cols + i] = (float) pixel[k] / 255.0f;
+                    // 重新组织内存访问模式，提高缓存效率
+                    pixels[k * rows * cols + i * cols + j] = (float) (pixelData[(i * cols + j) * channels + k] / 255.0);
                 }
             }
         }
         image.release();
+        convertedImage.release();
         // 创建OnnxTensor对象
         long[] shape = {1L, (long) channels, (long) rows, (long) cols};
         OnnxTensor tensor = OnnxTensor.createTensor(environment, FloatBuffer.wrap(pixels), shape);
@@ -168,9 +226,8 @@ public class YoloV8Predictor extends YoloPredictor {
         Map<Integer, List<float[]>> class2Bbox = new HashMap<>();
 
         for (float[] bbox : outputData) {
-            float[] conditionalProbabilities = Arrays.copyOfRange(bbox, 4, outputData.length);
-            int label = argmax(conditionalProbabilities);
-            float conf = conditionalProbabilities[label];
+            int label = argmax(bbox, 4); // 直接在原数组上进行操作
+            float conf = bbox[label + 4];
             if (conf < confThreshold) {
                 continue;
             }
@@ -185,8 +242,7 @@ public class YoloV8Predictor extends YoloPredictor {
                 continue;
             }
 
-            class2Bbox.putIfAbsent(label, new ArrayList<>());
-            class2Bbox.get(label).add(bbox);
+            class2Bbox.computeIfAbsent(label, k -> new ArrayList<>()).add(bbox);
         }
 
         List<Detection> detections = new ArrayList<>();
@@ -214,12 +270,18 @@ public class YoloV8Predictor extends YoloPredictor {
     public List<DetectResult> predictYolo(Mat image) throws OrtException {
         prepareSession();
         long start_time = System.currentTimeMillis();
+        Map<String, OnnxTensor> inputMap = preprocessImage(image);
         // 运行推理
-        OrtSession.Result output = session.run(preprocessImage(image));
-        List<Detection> detections = postProcessOutput(output);
-        Log.d("YoloV8Predictor", String.format("onnx predict cost: %d ms", (System.currentTimeMillis() - start_time)));
-        return detections.stream().map(detection -> new DetectResult(detection, letterbox))
-                .collect(Collectors.toList());
+        try (OrtSession.Result output = session.run(inputMap)) {
+            Log.d(TAG, "predictYolo: onnx run cost " + (System.currentTimeMillis() - start_time) + "ms");
+            List<Detection> detections = postProcessOutput(output);
+            Log.d("YoloV8Predictor", String.format("onnx predict cost: %d ms", (System.currentTimeMillis() - start_time)));
+            return detections.stream().map(detection -> new DetectResult(detection, letterbox))
+                    .collect(Collectors.toList());
+        } finally {
+            // 释放资源
+            inputMap.values().forEach(OnnxTensor::close);
+        }
     }
 
     public static void xywh2xyxy(float[] bbox) {
@@ -245,7 +307,7 @@ public class YoloV8Predictor extends YoloPredictor {
     }
 
     public static List<float[]> nonMaxSuppression(List<float[]> bboxes, float iouThreshold) {
-
+        long start = System.currentTimeMillis();
         List<float[]> bestBboxes = new ArrayList<>();
 
         bboxes.sort(Comparator.comparing(a -> a[4]));
@@ -253,9 +315,9 @@ public class YoloV8Predictor extends YoloPredictor {
         while (!bboxes.isEmpty()) {
             float[] bestBbox = bboxes.remove(bboxes.size() - 1);
             bestBboxes.add(bestBbox);
-            bboxes = bboxes.stream().filter(a -> computeIOU(a, bestBbox) < iouThreshold).collect(Collectors.toList());
+            bboxes.removeIf(bbox -> computeIOU(bbox, bestBbox) >= iouThreshold);
         }
-
+        Log.d(TAG, "nonMaxSuppression: cost " + (System.currentTimeMillis() - start) + "ms");
         return bestBboxes;
     }
 
@@ -269,22 +331,44 @@ public class YoloV8Predictor extends YoloPredictor {
         float right = Math.min(box1[2], box2[2]);
         float bottom = Math.min(box1[3], box2[3]);
 
-        float interArea = Math.max(right - left, 0) * Math.max(bottom - top, 0);
-        float unionArea = area1 + area2 - interArea;
-        return Math.max(interArea / unionArea, 1e-8f);
+        // 计算交集区域的宽度和高度
+        float width = Math.max(right - left, 0);
+        float height = Math.max(bottom - top, 0);
 
+        // 计算交集面积和并集面积
+        float interArea = width * height;
+        float unionArea = area1 + area2 - interArea;
+
+        // 计算交并比
+        return Math.max(interArea / unionArea, 1e-8f);
     }
 
+
     //返回最大值的索引
-    public static int argmax(float[] a) {
+    // 优化后的 argmax 函数
+    public static int argmax(float[] a, int start) {
         float re = -Float.MAX_VALUE;
         int arg = -1;
-        for (int i = 0; i < a.length; i++) {
+        for (int i = start; i < a.length; i++) {
             if (a[i] >= re) {
                 re = a[i];
-                arg = i;
+                arg = i - start;
             }
         }
         return arg;
+    }
+
+    @Override
+    public void release() {
+        if (session != null) {
+            try {
+                session.close();
+                session = null;
+            } catch (OrtException e) {
+                Log.e(TAG, "close session failed" + e);
+            }
+            environment.close();
+            environment = null;
+        }
     }
 }
