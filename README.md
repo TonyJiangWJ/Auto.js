@@ -24,6 +24,14 @@
 - 修复了其他的不痛不痒的缺陷。
 - 如果脚本需要防止类似淘宝的无障碍检测，请使用 `AutoJs.fakeIdlefish`。可以规避无障碍检测，将包名直接改成闲鱼的包名，加了个.x的后缀 `com.taobao.idlefish.x`。代码分支为 [fake_idlefish](https://github.com/TonyJiangWJ/Auto.js/tree/fake_idlefish)
 - 完善了一下打包功能，增加V2签名避免报毒。打包插件见仓库：[Auto.js-ApkBuilder](https://github.com/TonyJiangWJ/Auto.js-ApkBuilder)
+- 增加了ONNXRuntime，支持本地推理YOLOv8模型，其他版本的需要自行利用OnnxRuntime来处理出入参
+- 同时也提供了外置YOLO插件 分别是ONNX和NCNN版本，理论上支持所有AutoJS版本：
+  ```
+  https://www.lanzouh.com/b00crcexfa
+  密码:8caq
+  https://www.lanzouh.com/b00crcexgb
+  密码:h5yn
+  ```
 - 安装包下载路径，蓝奏云：
   ```
   https://wwxs.lanzouq.com/b042le51i
