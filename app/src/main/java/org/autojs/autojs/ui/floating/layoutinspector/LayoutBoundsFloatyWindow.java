@@ -22,6 +22,8 @@ import com.stardust.view.accessibility.NodeInfo;
 import org.autojs.autojs.ui.widget.BubblePopupMenu;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Stardust on 2017/3/12.
@@ -99,24 +101,45 @@ public class LayoutBoundsFloatyWindow extends FullScreenFloatyWindow {
         mBubblePopMenu = new BubblePopupMenu(mContext, Arrays.asList(
                 mContext.getString(R.string.text_show_widget_infomation),
                 mContext.getString(R.string.text_show_layout_hierarchy),
-                mContext.getString(R.string.text_generate_code)));
+                mContext.getString(R.string.text_generate_code),
+                "隐藏此节点",
+                "隐藏所有同框节点"));
         mBubblePopMenu.setOnItemClickListener((view, position) -> {
             mBubblePopMenu.dismiss();
-            if (position == 0) {
-                showNodeInfo();
-            } else if (position == 1) {
-                showLayoutHierarchy();
-            } else {
-                generateCode();
+            Map<Integer, Consumer> actionMap = new HashMap<>();
+            actionMap.put(0, this::showNodeInfo);
+            actionMap.put(1, this::showLayoutHierarchy);
+            actionMap.put(2, this::generateCode);
+            actionMap.put(3, this::excludeNode);
+            actionMap.put(4, this::excludeAllBoundsSameNode);
+
+            // API 24可以用完整的lambda表达式，但是为了兼容性只能用以下方式
+            Consumer consumer = actionMap.get(position);
+            if (consumer != null) {
+                consumer.apply();
             }
         });
         mBubblePopMenu.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBubblePopMenu.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
     }
 
+    private interface Consumer {
+        void apply();
+    }
+
     private void generateCode() {
         DialogUtils.showDialog(new CodeGenerateDialog(mContext, mRootNode, mSelectedNode)
                 .build());
+    }
+
+    private void excludeNode() {
+        mSelectedNode.setHidden(true);
+        mSelectedNode = null;
+    }
+
+    private void excludeAllBoundsSameNode() {
+        mLayoutBoundsView.hideAllBoundsSameNode(mSelectedNode);
+        mSelectedNode = null;
     }
 
     private void showLayoutHierarchy() {
