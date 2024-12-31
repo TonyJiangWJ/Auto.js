@@ -20,9 +20,11 @@ import com.stardust.theme.ThemeColorManager;
 import com.stardust.util.IntentUtil;
 import com.stardust.view.accessibility.AccessibilityService;
 
+
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.ViewById;
+import org.autojs.autojs.App;
 import org.autojs.autojs.Pref;
 import org.autojs.autojs.R;
 import org.autojs.autojs.autojs.AutoJs;
@@ -80,6 +82,8 @@ public class DrawerFragment extends androidx.fragment.app.Fragment {
     private DrawerMenuItem mEnableShizukuItem = new DrawerMenuItem(R.drawable.ic_connect_to_pc, R.string.enable_shizuku, R.string.key_enable_shizuku, this::enableShizuku);
 
     private DrawerMenuItem mEnableAlarmManager = new DrawerMenuItem(R.drawable.ic_descending_order, R.string.text_enable_alarm_manager, R.string.key_enable_alarm_manager, this::toggleWorkProvider);
+
+    private DrawerMenuItem mEnableHyperKeyCode = new DrawerMenuItem(R.drawable.ic_descending_order, R.string.hyperos_keycode_receive, R.string.key_enable_hyperos_keycode, this::ensureKeyCodeReceiver);
 
     private DrawerMenuItem mAccessibilityServiceItem = new DrawerMenuItem(R.drawable.ic_service_green, R.string.text_accessibility_service, 0, this::enableOrDisableAccessibilityService);
     private DrawerMenuItem mStableModeItem = new DrawerMenuItem(R.drawable.ic_stable, R.string.text_stable_mode, R.string.key_stable_mode, null) {
@@ -155,6 +159,7 @@ public class DrawerFragment extends androidx.fragment.app.Fragment {
                 new DrawerMenuItem(R.drawable.ic_personalize, R.string.text_theme_color, this::openThemeColorSettings),
                 new DrawerMenuItem(R.drawable.ic_night_mode, R.string.text_night_mode, R.string.key_night_mode, this::toggleNightMode),
                 mEnableAlarmManager,
+                mEnableHyperKeyCode,
                 new DrawerMenuItem(R.drawable.ic_enable_log, R.string.text_enable_debug_log, R.string.key_enable_debug_log, this::toggleDebugLog)
         )));
         mDrawerMenu.setAdapter(mDrawerMenuAdapter);
@@ -247,6 +252,14 @@ public class DrawerFragment extends androidx.fragment.app.Fragment {
             AutoJs.getInstance().debugInfo("切换任务调度模式为：work-manager");
         }
         TimedTaskScheduler.ensureCheckTaskWorks(getContext());
+    }
+
+    void ensureKeyCodeReceiver(DrawerMenuItemViewHolder holder) {
+        if (holder.getSwitchCompat().isChecked()) {
+            App.Companion.getApp().ensureKeyCodeReceiver(true);
+        } else {
+            App.Companion.getApp().unregisterButtonReceiver();
+        }
     }
 
     @SuppressLint("CheckResult")

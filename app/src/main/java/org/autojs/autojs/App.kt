@@ -1,10 +1,13 @@
 package org.autojs.autojs
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import android.view.View
 import android.widget.ImageView
@@ -15,7 +18,6 @@ import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import com.posthog.android.PostHogAndroid
 import com.posthog.android.PostHogAndroidConfig
-
 import com.stardust.app.GlobalAppContext
 import com.stardust.autojs.core.ui.inflater.ImageLoader
 import com.stardust.autojs.core.ui.inflater.util.Drawables
@@ -27,6 +29,7 @@ import org.apache.commons.lang3.StringUtils
 import org.autojs.autojs.autojs.AutoJs
 import org.autojs.autojs.autojs.key.GlobalKeyObserver
 import org.autojs.autojs.external.receiver.DynamicBroadcastReceivers
+import org.autojs.autojs.external.receiver.MediaButtonReceiver
 import org.autojs.autojs.theme.ThemeColorManagerCompat
 import org.autojs.autojs.timing.TimedTaskManager
 import org.autojs.autojs.timing.TimedTaskScheduler
@@ -42,6 +45,8 @@ import java.util.*
 class App : MultiDexApplication() {
     lateinit var dynamicBroadcastReceivers: DynamicBroadcastReceivers
         private set
+
+    private var buttonReceiver: MediaButtonReceiver? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -132,8 +137,28 @@ class App : MultiDexApplication() {
                     actions.add(it.action)
                 }
             }, { it.printStackTrace() })
+        ensureKeyCodeReceiver(false)
+    }
+    fun ensureKeyCodeReceiver(forceEnable: Boolean) {
+        if (Pref.isHyperOSKeyCode() || forceEnable) {
+            if (buttonReceiver == null) {
+                val filter = IntentFilter()
+                filter.addAction(MediaButtonReceiver.ACTION)
+                buttonReceiver = MediaButtonReceiver()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    registerReceiver(buttonReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+                } else {
+                    registerReceiver(buttonReceiver, filter);
+                }
+            }
+        }
+    }
 
-
+    fun unregisterButtonReceiver() {
+        if (buttonReceiver != null) {
+            unregisterReceiver(buttonReceiver)
+            buttonReceiver = null
+        }
     }
 
     private fun setupDrawableImageLoader() {

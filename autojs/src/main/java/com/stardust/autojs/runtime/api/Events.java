@@ -3,12 +3,15 @@ package com.stardust.autojs.runtime.api;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Point;
 import android.os.Build;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.view.KeyEvent;
 
+import com.stardust.app.GlobalAppContext;
 import com.stardust.autojs.R;
 import com.stardust.autojs.core.accessibility.AccessibilityBridge;
 import com.stardust.autojs.core.boardcast.BroadcastEmitter;
@@ -35,6 +38,8 @@ import java.util.Map;
 import java.util.Set;
 
 import androidx.annotation.RequiresApi;
+
+import static com.stardust.app.GlobalAppContext.getString;
 
 /**
  * Created by Stardust on 2017/7/18.
@@ -81,6 +86,8 @@ public class Events extends EventEmitter implements OnKeyListener, TouchObserver
 
     public final BroadcastEmitter broadcast;
 
+    private ButtonReceiver buttonReceiver;
+
     public Events(Context context, AccessibilityBridge accessibilityBridge, ScriptRuntime runtime) {
         super(runtime.bridges);
         mAccessibilityBridge = accessibilityBridge;
@@ -115,6 +122,18 @@ public class Events extends EventEmitter implements OnKeyListener, TouchObserver
         mListeningKey = true;
         mAccessibilityBridge.ensureServiceEnabled();
         service.getOnKeyObserver().addListener(this);
+        boolean isHyperOSKeyCode = PreferenceManager.getDefaultSharedPreferences(GlobalAppContext.get())
+                .getBoolean("ENABLE_HYPEROS_KEYCODE", false);
+        if (isHyperOSKeyCode) {
+            buttonReceiver = new ButtonReceiver();
+            buttonReceiver.setListener(this);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    mContext.registerReceiver(buttonReceiver,
+                            new IntentFilter(ButtonReceiver.ACTION), Context.RECEIVER_NOT_EXPORTED);
+                }
+            }
+        }
     }
 
     private void ensureHandler() {
@@ -279,6 +298,10 @@ public class Events extends EventEmitter implements OnKeyListener, TouchObserver
             if (service != null) {
                 service.getOnKeyObserver().removeListener(this);
                 mListeningKey = false;
+            }
+            if (buttonReceiver != null) {
+                mContext.unregisterReceiver(buttonReceiver);
+                buttonReceiver = null;
             }
         }
         if (mTouchObserver != null) {
