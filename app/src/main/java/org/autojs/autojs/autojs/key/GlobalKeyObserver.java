@@ -70,9 +70,16 @@ public class GlobalKeyObserver implements OnKeyListener, ShellKeyObserver.KeyLis
         return mVolumeDownEventDispatcher.removeListener(listener);
     }
 
-    @Override
-    public void onKeyEvent(int keyCode, KeyEvent event) {
-        if (event.getAction() != KeyEvent.ACTION_UP)
+    public void onKeyEvent(int keyCode, KeyEvent event, boolean fromBroadCast) {
+        int checkAction = KeyEvent.ACTION_UP;
+        if (fromBroadCast) {
+           checkAction = KeyEvent.ACTION_DOWN;
+        }
+        onKeyEvent(keyCode, event, checkAction);
+    }
+
+    public void onKeyEvent(int keyCode, KeyEvent event, int checkAction) {
+        if (event.getAction() != checkAction)
             return;
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             if (mVolumeDownFromShell) {
@@ -89,6 +96,11 @@ public class GlobalKeyObserver implements OnKeyListener, ShellKeyObserver.KeyLis
             mVolumeUpFromAccessibility = true;
             onVolumeUp();
         }
+    }
+
+    @Override
+    public void onKeyEvent(int keyCode, KeyEvent event) {
+        onKeyEvent(keyCode, event, false);
     }
 
 

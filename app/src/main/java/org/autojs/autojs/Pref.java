@@ -174,6 +174,10 @@ public class Pref {
         return def().getBoolean(getString(R.string.key_foreground_servie), false);
     }
 
+    public static boolean isHyperOSKeyCode() {
+        return def().getBoolean(getString(R.string.key_enable_hyperos_keycode), false);
+    }
+
     public static boolean haveAdbPermission(Context context) {
         return PackageManager.PERMISSION_GRANTED == context.getPackageManager()
                 .checkPermission("android.permission.WRITE_SECURE_SETTINGS",
