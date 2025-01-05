@@ -103,7 +103,6 @@ public class Mat extends org.opencv.core.Mat implements ResourceMonitor.Resource
             }
             mReleased = true;
         }
-        super.finalize();
     }
 
     @Override

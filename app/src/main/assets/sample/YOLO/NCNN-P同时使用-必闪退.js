@@ -1,6 +1,6 @@
 const img = images.read("./test.png")
 console.show()
-setTimeout(() -> console.hide(), 15000)
+setTimeout(() => console.hide(), 15000)
 let cpuThreadNum = 4
 // PaddleOCR 移动端提供了两种模型：ocr_v3_for_cpu与ocr_v3_for_cpu(slim)，此选项用于选择加载的模型,默认true使用v3的slim版(速度更快)，false使用v3的普通版(准确率更高）
 let useSlim = true
@@ -14,8 +14,8 @@ let result = $ocr.detect(img, { cpuThreadNum, useSlim })
 img.recycle()
 log('slim识别耗时：' + (new Date() - start) + 'ms')
 
-let model_path = '/sdcard/脚本/best.bin'
-let param_path = '/sdcard/脚本/best.param'
+let model_path = '/sdcard/脚本/manor.bin'
+let param_path = '/sdcard/脚本/manor.param'
 if (!files.exists(model_path) || !files.exists(param_path)) {
     toastLog('请确认已下载了模型文件')
     exit()

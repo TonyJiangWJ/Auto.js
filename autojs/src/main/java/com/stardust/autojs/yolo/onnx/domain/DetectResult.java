@@ -1,12 +1,13 @@
-package com.stardust.autojs.onnx.domain;
+package com.stardust.autojs.yolo.onnx.domain;
 
 import android.graphics.Rect;
-import com.stardust.autojs.onnx.util.Letterbox;
+
+import com.stardust.autojs.yolo.onnx.util.Letterbox;
 
 /**
  * @author TonyJiangWJ
  * @since 2023/8/20
- * transfer from https://gitee.com/agricultureiot/yolo-onnx-java
+ * transfer from <a href="https://gitee.com/agricultureiot/yolo-onnx-java">yolo-onnx-java</a>
  */
 public class DetectResult {
 

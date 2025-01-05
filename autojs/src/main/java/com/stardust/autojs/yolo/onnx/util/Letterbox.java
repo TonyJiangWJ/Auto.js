@@ -1,4 +1,4 @@
-package com.stardust.autojs.onnx.util;
+package com.stardust.autojs.yolo.onnx.util;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -8,7 +8,7 @@ import org.opencv.imgproc.Imgproc;
 /**
  * @author TonyJiangWJ
  * @since 2023/8/20
- * transfer from https://gitee.com/agricultureiot/yolo-onnx-java
+ * transfer from <a href="https://gitee.com/agricultureiot/yolo-onnx-java">yolo-onnx-java</a>
  */
 public class Letterbox {
 

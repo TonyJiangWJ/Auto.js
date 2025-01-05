@@ -7,34 +7,36 @@ if (!requestScreenCapture()) {
 }
 
 
+let onnxInstance = null
+let ncnnInstance = null
 let currentType = 'ncnn'
-let initSuccess = false
 initYoloInstances()
-
+let yoloInstance = {
+  ncnn: ncnnInstance,
+  onnx: onnxInstance,
+}
 
 // 识别结果和截图信息
 let result = []
 let img = null
 let running = true
 let capturing = false
+let cost = 0
 
 /**
  * 截图并识别OCR文本信息
  */
 function captureAndDetect () {
-  if (!initSuccess) {
-    toastLog('当前推理模型未能初始化，请选择另一个')
-    return
-  }
   capturing = true
   img = captureScreen()
   if (!img) {
     toastLog('截图失败')
   }
   let start = new Date()
-  result = $yolo.forward(img)
+  result = yoloInstance[currentType].forward(img)
   console.verbose('识别结果：' + JSON.stringify(result))
-  toastLog('耗时' + (new Date() - start) + 'ms')
+  cost = (new Date() - start)
+  toastLog('耗时' + cost + 'ms')
   img && img.recycle()
   capturing = false
 }
@@ -127,6 +129,10 @@ window.canvas.on('draw', function (canvas) {
       drawRectAndText(detectResult.label, detectResult.bounds, '#00ff00', canvas, paint)
     }
   }
+  drawText('请打开支付宝蚂蚁庄园界面进行识别', 100, device.height - 300, '#00ff00', canvas, paint)
+  if (cost > 0) {
+    drawText('识别耗时:' + cost + 'ms', 100, device.height - 250, '#00ff00', canvas, paint)
+  }
 })
 
 setInterval(() => { }, 10000)
@@ -156,14 +162,40 @@ function drawRectAndText (desc, rect, colorStr, canvas, paint) {
   // 反色
   paint.setARGB(255, 255 - (color >> 16 & 0xff), 255 - (color >> 8 & 0xff), 255 - (color & 0xff))
   canvas.drawRect(rect, paint)
-  paint.setARGB(255, color >> 16 & 0xff, color >> 8 & 0xff, color & 0xff)
   paint.setStrokeWidth(1)
   paint.setTextSize(20)
   paint.setStyle(Paint.Style.FILL)
+  canvas.drawText(desc, rect.left + 1, rect.top + 2, paint)
+  paint.setARGB(255, color >> 16 & 0xff, color >> 8 & 0xff, color & 0xff)
   canvas.drawText(desc, rect.left, rect.top, paint)
   paint.setTextSize(10)
   paint.setStrokeWidth(1)
   paint.setARGB(255, 0, 0, 0)
+}
+
+/**
+ * 绘制文本
+ *
+ * @param {*} desc
+ * @param {*} left
+ * @param {*} top
+ * @param {*} colorStr
+ * @param {*} canvas
+ * @param {*} paint
+ */
+function drawText (desc, left, top, colorStr, canvas, paint) {
+  let color = colors.parseColor(colorStr)
+
+  paint.setStrokeWidth(1)
+  paint.setStyle(Paint.Style.STROKE)
+  paint.setStrokeWidth(1)
+  paint.setTextSize(30)
+  paint.setStyle(Paint.Style.FILL)
+  // 反色 阴影
+  paint.setARGB(255, 255 - (color >> 16 & 0xff), 255 - (color >> 8 & 0xff), 255 - (color & 0xff))
+  canvas.drawText(desc, left + 1, top + 2, paint)
+  paint.setARGB(255, color >> 16 & 0xff, color >> 8 & 0xff, color & 0xff)
+  canvas.drawText(desc, left, top, paint)
 }
 
 /**
@@ -185,61 +217,55 @@ function getStatusBarHeightCompat () {
 
 
 function initYoloInstances () {
-  if (initSuccess) {
-    $yolo.release()
+
+
+  let onnx_model_path = '/sdcard/脚本/manor_lite.onnx'
+  if (!files.exists(onnx_model_path)) {
+    toastLog('请确认已下载了onnx模型文件')
+    exit()
   }
-  initSuccess = false
-  if (currentType == 'ncnn') {
-    let model_path = '/sdcard/脚本/best.bin'
-    let param_path = '/sdcard/脚本/best.param'
-    if (!files.exists(model_path) || !files.exists(param_path)) {
-      toastLog('请确认已下载了模型文件')
-      return
-    }
-    let ncnnInit = $yolo.init({
-      type: 'ncnn',
-      paramPath: files.path(param_path),
-      binPath: files.path(model_path),
-      imageSize: 480,
-      labels: [
-        'booth_btn', 'collect_coin', 'collect_egg', 'collect_food', 'cook', 'countdown', 'donate',
-        'eating_chicken', 'employ', 'empty_booth', 'feed_btn', 'friend_btn', 'has_food', 'has_shit',
-        'hungry_chicken', 'item', 'kick-out', 'no_food', 'not_ready', 'operation_booth', 'plz-go',
-        'punish_booth', 'punish_btn', 'signboard', 'sleep', 'speedup', 'sports', 'stopped_booth',
-        'thief_chicken', 'close_btn', 'collect_muck', 'confirm_btn', 'working_chicken',
-      ]
-    })
-    if (ncnnInit) {
-      initSuccess = true
-    } else {
-      toastLog('ncnn初始化失败')
-    }
+  let model_path = '/sdcard/脚本/manor.bin'
+  let param_path = '/sdcard/脚本/manor.param'
+  if (!files.exists(model_path) || !files.exists(param_path)) {
+    toastLog('请确认已下载了ncnn模型文件')
+    exit()
+  }
+  let ncnnInit = $yolo.init({
+    type: 'ncnn',
+    paramPath: files.path(param_path),
+    binPath: files.path(model_path),
+    imageSize: 480,
+    // ncnn 版本必须填写labels
+    labels: [
+      'booth_btn', 'collect_coin', 'collect_egg', 'collect_food', 'cook', 'countdown', 'donate',
+      'eating_chicken', 'employ', 'empty_booth', 'feed_btn', 'friend_btn', 'has_food', 'has_shit',
+      'hungry_chicken', 'item', 'kick-out', 'no_food', 'not_ready', 'operation_booth', 'plz-go',
+      'punish_booth', 'punish_btn', 'signboard', 'sleep', 'speedup', 'sports', 'stopped_booth',
+      'thief_chicken', 'close_btn', 'collect_muck', 'confirm_btn', 'working_chicken',
+    ]
+  })
+  if (ncnnInit) {
+    ncnnInstance = $yolo.getInstance()
   } else {
-
-    let onnx_model_path = '/sdcard/脚本/manor_lite.onnx'
-    if (!files.exists(onnx_model_path)) {
-      toastLog('请确认已下载了onnx模型文件')
-      return
-    }
-
-    let onnxInit = $yolo.init({
-      type: 'onnx',
-      modelPath: files.path(onnx_model_path),
-      imageSize: 480,
-      labels: [
-        'booth_btn', 'collect_coin', 'collect_egg', 'collect_food', 'cook', 'countdown', 'donate',
-        'eating_chicken', 'employ', 'empty_booth', 'feed_btn', 'friend_btn', 'has_food', 'has_shit',
-        'hungry_chicken', 'item', 'kick-out', 'no_food', 'not_ready', 'operation_booth', 'plz-go',
-        'punish_booth', 'punish_btn', 'signboard', 'sleep', 'speedup', 'sports', 'stopped_booth',
-        'thief_chicken', 'close_btn', 'collect_muck', 'confirm_btn', 'working_chicken', 'bring_back',
-        'leave_msg', 'speedup_eating',
-      ]
-    })
-    if (onnxInit) {
-      initSuccess = true
-    } else {
-      toastLog('onnx初始化失败')
-    }
+    toastLog('ncnn初始化失败')
+  }
+  let onnxInit = $yolo.init({
+    type: 'onnx',
+    modelPath: files.path(onnx_model_path),
+    imageSize: 480,
+    // onnx版本可以不填写labels，可以通过onnx模型自动提取，当然也可以自己提供，比如映射成中文等
+    labels: [
+      '摆摊按钮', '收集金币', '收蛋', '领饲料', '去做饭', '倒计时', '捐蛋',
+      'eating_chicken', 'employ', '空摊位', 'feed_btn', 'friend_btn', 'has_food', 'has_shit',
+      'hungry_chicken', '道具', 'kick-out', 'no_food', 'not_ready', 'operation_booth', 'plz-go',
+      'punish_booth', 'punish_btn', 'signboard', 'sleep', 'speedup', 'sports', 'stopped_booth',
+      'thief_chicken', 'close_btn', 'collect_muck', 'confirm_btn', 'working_chicken',
+    ]
+  })
+  if (onnxInit) {
+    onnxInstance = $yolo.getInstance()
+  } else {
+    toastLog('onnx初始化失败')
   }
 }
 
@@ -249,8 +275,11 @@ function changeYoloType () {
   let idx = dialogs.singleChoice("请选择YOLO推理类型", options, options.indexOf(currentType))
   let targetType = options[idx]
   toast("选择了: " + targetType)
+  if (!yoloInstance[targetType]) {
+    toastLog('目标类型未能初始化：' + targetType)
+    return
+  }
   currentType = targetType
-  initYoloInstances()
 }
 
 function TouchController (buttonWindow, handleClick, handleDown, handleUp) {

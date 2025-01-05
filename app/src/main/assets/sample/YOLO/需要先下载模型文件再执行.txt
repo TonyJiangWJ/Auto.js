@@ -1,9 +1,7 @@
-存放路径                       下载地址
+存放路径 下载地址：https://pan.quark.cn/s/7242eae30941
 ncnn:
-/sdcard/脚本/yolov8n.param
-/sdcard/脚本/yolov8n.bin
-/sdcard/脚本/best.param
-/sdcard/脚本/best.bin
+/sdcard/脚本/manor.param
+/sdcard/脚本/manor.bin
 onnx:
 /sdcard/脚本/manor_lite.onnx
 

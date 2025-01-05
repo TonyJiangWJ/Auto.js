@@ -1,4 +1,4 @@
-package com.stardust.autojs.onnx.domain;
+package com.stardust.autojs.yolo.onnx.domain;
 
 /**
  * @author TonyJiangWJ
@@ -15,14 +15,14 @@ public class Detection {
     public float confidence;
 
 
-    public Detection(String label,Integer clsId, float[] bbox, float confidence){
+    public Detection(String label, Integer clsId, float[] bbox, float confidence) {
         this.clsId = clsId;
         this.label = label;
         this.bbox = bbox;
         this.confidence = confidence;
     }
 
-    public Detection(){
+    public Detection() {
 
     }
 
@@ -52,12 +52,12 @@ public class Detection {
 
     @Override
     public String toString() {
-        return "  label="+label +
-                " \t clsId="+clsId +
-                " \t x0="+bbox[0] +
-                " \t y0="+bbox[1] +
-                " \t x1="+bbox[2] +
-                " \t y1="+bbox[3] +
-                " \t score="+confidence;
+        return "  label=" + label +
+                " \t clsId=" + clsId +
+                " \t x0=" + bbox[0] +
+                " \t y0=" + bbox[1] +
+                " \t x1=" + bbox[2] +
+                " \t y1=" + bbox[3] +
+                " \t score=" + confidence;
     }
 }

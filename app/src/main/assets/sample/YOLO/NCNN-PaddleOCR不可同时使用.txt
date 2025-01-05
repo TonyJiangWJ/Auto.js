@@ -1,5 +1,8 @@
-NCNN和PaddleOCR同时使用时有兼容性问题导致无法正常运行甚至闪退，请勿同时使用
+NCNN和PaddleOCR同时使用时,
+有兼容性问题导致无法正常运行甚至闪退，请勿同时使用
 
-该问题暂时无法解决，因此如果需要使用PaddleOcr时 请使用onnx，或者使用mlkitocr进行文字识别
+该问题暂时无法解决，因此如果需要使用PaddleOcr时
+请使用onnx，或者使用mlkitocr进行文字识别
 
-建议在依赖性能的情况下使用ncnn，同时使用mlkitocr进行文字识别
+建议在依赖性能的情况下使用ncnn，
+同时使用mlkitocr进行文字识别

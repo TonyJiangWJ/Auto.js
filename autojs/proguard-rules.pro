@@ -25,3 +25,5 @@
 #-renamesourcefileattribute SourceFile
 #-keep public class com.stardust.autojs.onnx.YoloV8Predictor
 #-keepnames class com.stardust.autojs.onnx.YoloV8Predictor
+#-keep public class com.stardust.autojs.yolo.onnx.OnnxYoloV8Predictor
+#-keepnames class com.stardust.autojs.yolo.onnx.OnnxYoloV8Predictor
