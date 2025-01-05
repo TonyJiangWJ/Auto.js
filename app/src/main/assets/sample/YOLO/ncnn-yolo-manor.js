@@ -1,11 +1,11 @@
-let model_path = '/sdcard/脚本/best.bin'
-let param_path = '/sdcard/脚本/best.param'
+let model_path = '/sdcard/脚本/manor.bin'
+let param_path = '/sdcard/脚本/manor.param'
 if (!files.exists(model_path) || !files.exists(param_path)) {
     toastLog('请确认已下载了模型文件')
     exit()
 }
 console.show()
-setTimeout(() -> console.hide(), 15000)
+setTimeout(() => console.hide(), 15000)
 let yoloInit = $yolo.init({
   type: 'ncnn',
   paramPath: files.path(param_path),
