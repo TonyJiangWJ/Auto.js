@@ -1,16 +1,15 @@
-package com.stardust.autojs.ncnn;
+package com.stardust.autojs.yolo.ncnn;
 
 import android.os.Build;
 import android.util.Log;
 
 import com.google.android.gms.common.util.CollectionUtils;
-import com.stardust.autojs.onnx.domain.DetectResult;
-import com.stardust.autojs.runtime.api.YoloPredictor;
-import com.tony.yolov8ncnn.PredictResult;
+import com.stardust.autojs.yolo.YoloPredictor;
+import com.stardust.autojs.yolo.onnx.domain.DetectResult;
 import com.tony.yolov8ncnn.NcnnPredictorNative;
+import com.tony.yolov8ncnn.PredictResult;
 
 import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,6 +21,8 @@ import java.util.stream.Collectors;
 import androidx.annotation.RequiresApi;
 
 /**
+ * Ncnn YoloV8推理器
+ *
  * @author TonyJiangWJ
  * @since 2024/6/1
  */

@@ -4,7 +4,7 @@ if (!files.exists(model_path)) {
     exit()
 }
 console.show()
-setTimeout(() -> console.hide(), 15000)
+setTimeout(() => console.hide(), 15000)
 let yoloInit = $yolo.init({
   type: 'onnx',
   modelPath: files.path(model_path),
