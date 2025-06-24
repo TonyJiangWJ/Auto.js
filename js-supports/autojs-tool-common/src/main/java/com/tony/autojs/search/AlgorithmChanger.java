@@ -7,22 +7,38 @@ import com.stardust.automator.search.SearchAlgorithm;
 
 import java.lang.reflect.Field;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class AlgorithmChanger {
 
-    protected final static ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(4, 4, 60, TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>()
-            , new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread t = Executors.defaultThreadFactory().newThread(r);
-            t.setName("parallel-pre-build-t-" + t.getName());
-            return t;
+    protected static volatile AutoCloseThreadPool threadPoolExecutor = null;
+
+    protected static AutoCloseThreadPool getExecutor() {
+        if (threadPoolExecutor == null) {
+            synchronized (AlgorithmChanger.class) {
+                if (threadPoolExecutor == null) {
+                    threadPoolExecutor = new AutoCloseThreadPool(
+                            4, 4, 60, TimeUnit.SECONDS,
+                            new ThreadFactory() {
+                                @Override
+                                public Thread newThread(Runnable r) {
+                                    Thread t = Executors.defaultThreadFactory().newThread(r);
+                                    t.setName("parallel-pre-build-t-" + t.getName());
+                                    return t;
+                                }
+                            }, new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.d(TAG, "线程池关闭");
+                            threadPoolExecutor = null;
+                        }
+                    });
+                }
+            }
         }
-    });
+        return threadPoolExecutor;
+    }
 
     private static final String TAG = "AlgorithmChanger";
     public static boolean enableLogging = false;

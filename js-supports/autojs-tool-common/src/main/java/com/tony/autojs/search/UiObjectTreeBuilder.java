@@ -8,7 +8,6 @@ import com.stardust.autojs.core.accessibility.AccessibilityBridge;
 import com.stardust.automator.UiObject;
 import com.stardust.automator.filter.Filter;
 
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -20,12 +19,15 @@ public class UiObjectTreeBuilder extends ParallelPreBuildTreeSearch {
 
     private AccessibilityBridge mAccessibilityBridge;
 
+    public UiObjectTreeBuilder() {
+
+    }
+
     public UiObjectTreeBuilder(AccessibilityBridge accessibilityBridge) {
         this.mAccessibilityBridge = accessibilityBridge;
     }
 
-    public List<TreeNode> buildTreeNode() {
-        List<AccessibilityNodeInfo> roots = mAccessibilityBridge.windowRoots();
+    public List<TreeNode> buildTreeNode(List<AccessibilityNodeInfo> roots) {
         if (BuildConfig.DEBUG)
             Log.d(TAG, "find: roots = " + roots);
         if (roots.isEmpty()) {
@@ -45,8 +47,15 @@ public class UiObjectTreeBuilder extends ParallelPreBuildTreeSearch {
         return result;
     }
 
-    public List<TreeNode> buildVisibleTreeNode() {
+    public List<TreeNode> buildTreeNode() {
+        if (mAccessibilityBridge == null) {
+            return Collections.emptyList();
+        }
         List<AccessibilityNodeInfo> roots = mAccessibilityBridge.windowRoots();
+        return buildTreeNode(roots);
+    }
+
+    public List<TreeNode> buildVisibleTreeNode(List<AccessibilityNodeInfo> roots) {
         if (BuildConfig.DEBUG)
             Log.d(TAG, "find: roots = " + roots);
         if (roots.isEmpty()) {
@@ -64,6 +73,14 @@ public class UiObjectTreeBuilder extends ParallelPreBuildTreeSearch {
             }
         }
         return result;
+    }
+
+    public List<TreeNode> buildVisibleTreeNode() {
+        if (mAccessibilityBridge == null) {
+            return Collections.emptyList();
+        }
+        List<AccessibilityNodeInfo> roots = mAccessibilityBridge.windowRoots();
+        return buildVisibleTreeNode(roots);
     }
 
     @NonNull
