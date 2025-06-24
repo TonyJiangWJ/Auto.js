@@ -1,15 +1,20 @@
 package com.stardust.autojs.core.plugin;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.os.IBinder;
+import android.util.Log;
 
 import com.stardust.autojs.rhino.TopLevelScope;
 import com.stardust.autojs.runtime.ScriptRuntime;
 
 import java.lang.reflect.Method;
 
-public class Plugin {
+public class Plugin implements ServiceConnection {
+    private static final String TAG = "Plugin";
 
     public static class PluginLoadException extends RuntimeException {
         public PluginLoadException(Throwable cause) {
@@ -36,7 +41,7 @@ public class Plugin {
         } catch (PackageManager.NameNotFoundException e) {
             return null;
         } catch (Throwable e) {
-            e.printStackTrace();
+            Log.e(TAG, "load failed", e);
             throw new PluginLoadException(e);
         }
     }
@@ -47,10 +52,17 @@ public class Plugin {
         return new Plugin(pluginInstance);
     }
 
-    private final Object mPluginInstance;
+    private Object mPluginInstance;
     private Method mGetVersion;
     private Method mGetScriptDir;
     private String mMainScriptPath;
+    // AIDL 调用
+    private Method mGetService;
+    private Method mOnServiceConnected;
+    private Method mOnServiceDisconnected;
+    private ComponentName componentName;
+
+    private int version;
 
     public Plugin(Object pluginInstance) {
         mPluginInstance = pluginInstance;
@@ -59,16 +71,63 @@ public class Plugin {
 
     @SuppressWarnings("unchecked")
     private void findMethods(Class pluginClass) {
-        try {
-            mGetVersion = pluginClass.getMethod("getVersion");
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+        mGetVersion = findMethod(pluginClass, "getVersion");
+        mGetScriptDir = findMethod(pluginClass, "getAssetsScriptDir");
+        mGetService = findMethod(pluginClass, "getService");
+        mOnServiceConnected = findMethod(pluginClass, "onServiceConnected", ComponentName.class, IBinder.class);
+        mOnServiceDisconnected = findMethod(pluginClass, "onServiceDisconnected", ComponentName.class);
+        if (mGetService != null) {
+            try {
+                componentName = (ComponentName) mGetService.invoke(mPluginInstance);
+            } catch (Exception e) {
+                Log.e(TAG, "get componentName failed ", e);
+            }
         }
         try {
-            mGetScriptDir = pluginClass.getMethod("getAssetsScriptDir");
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+            if (mGetVersion != null) {
+                version = (int) mGetVersion.invoke(mPluginInstance);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "get version failed ", e);
         }
+    }
+
+
+
+    @Override
+    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+        Log.d(TAG, "onServiceConnected: " + componentName.getShortClassName());
+        if (mOnServiceConnected == null) {
+            return;
+        }
+        try {
+            mOnServiceConnected.invoke(mPluginInstance, componentName, iBinder);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName componentName) {
+        Log.d(TAG, "onServiceDisconnected: " + componentName.getShortClassName());
+        if (mOnServiceDisconnected == null) {
+            return;
+        }
+        try {
+            mOnServiceDisconnected.invoke(mPluginInstance, componentName);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        mPluginInstance = null;
+    }
+
+    private Method findMethod(Class pluginClass, String method, Class ...args) {
+        try {
+            return pluginClass.getMethod(method, args);
+        } catch (NoSuchMethodException e) {
+            Log.d(TAG, "can not findMethod: "+ method, e);
+        }
+        return null;
     }
 
     public Object unwrap() {
@@ -89,5 +148,13 @@ public class Plugin {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public ComponentName getComponentName() {
+        return componentName;
+    }
+
+    public int getVersion() {
+        return version;
     }
 }
