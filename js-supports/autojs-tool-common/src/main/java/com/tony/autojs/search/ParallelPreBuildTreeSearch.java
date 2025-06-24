@@ -54,7 +54,7 @@ public abstract class ParallelPreBuildTreeSearch implements SearchAlgorithm {
             final CountDownLatch countDownLatch = new CountDownLatch(parent.getRoot().childCount());
             for (int i = 0; i < parent.getRoot().childCount(); i++) {
                 final int finalI = i;
-                AlgorithmChanger.threadPoolExecutor.execute(new Runnable() {
+                AlgorithmChanger.getExecutor().execute(new Runnable() {
                     @Override
                     public void run() {
                         UiObject child = parent.getRoot().child(finalI);
@@ -90,7 +90,7 @@ public abstract class ParallelPreBuildTreeSearch implements SearchAlgorithm {
             final CountDownLatch countDownLatch = new CountDownLatch(parent.getRoot().childCount());
             for (int i = 0; i < parent.getRoot().childCount(); i++) {
                 final int finalI = i;
-                AlgorithmChanger.threadPoolExecutor.execute(new Runnable() {
+                AlgorithmChanger.getExecutor().execute(new Runnable() {
                     @Override
                     public void run() {
                         UiObject child = parent.getRoot().child(finalI);
