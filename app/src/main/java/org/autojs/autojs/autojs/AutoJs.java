@@ -140,14 +140,19 @@ public class AutoJs extends com.stardust.autojs.AutoJs {
                 if (AccessibilityServiceTool.disableAccessibilityServiceByAdb()
                         && AccessibilityServiceTool.enableAccessibilityServiceByAdbAndWaitFor( 2000)) {
                     // 重新获取无障碍权限成功
-                    return null;
+                    if (AccessibilityService.Companion.getInstance() != null) {
+                        return null;
+                    }
                 }
             }
             errorMessage = GlobalAppContext.getString(R.string.text_auto_operate_service_enabled_but_not_running);
         } else {
             if (Pref.haveAdbPermission(getApplication())) {
                 if (AccessibilityServiceTool.enableAccessibilityServiceByAdbAndWaitFor( 2000)) {
-                    return null;
+                    if (AccessibilityService.Companion.getInstance() != null) {
+                        return null;
+                    }
+                    errorMessage = GlobalAppContext.getString(R.string.text_no_accessibility_permission);
                 }
             }
             if (Pref.shouldEnableAccessibilityServiceByRoot()) {
