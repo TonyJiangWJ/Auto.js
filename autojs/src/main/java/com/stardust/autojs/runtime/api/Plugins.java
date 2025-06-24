@@ -1,6 +1,9 @@
 package com.stardust.autojs.runtime.api;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
 
 import com.stardust.autojs.core.plugin.Plugin;
 import com.stardust.autojs.runtime.ScriptRuntime;
@@ -31,9 +34,27 @@ public class Plugins {
             File scriptCacheDir = getScriptCacheDir(packageName);
             PFiles.copyAssetDir(packageContext.getAssets(), plugin.getAssetsScriptDir(), scriptCacheDir.getPath(), null);
             plugin.setMainScriptPath(new File(scriptCacheDir, "index.js").getPath());
+            bindService(plugin);
             return plugin;
         } catch (Exception e) {
             throw new Plugin.PluginLoadException(e);
+        }
+    }
+
+    private void bindService(Plugin plugin) {
+        if (plugin.getVersion() < 2) {
+            return;
+        }
+        ComponentName componentName = plugin.getComponentName();
+        if (componentName == null) {
+            return;
+        }
+        Intent intent = new Intent();
+        intent.setComponent(componentName);
+        try {
+            mContext.getApplicationContext().bindService(intent, plugin, Context.BIND_AUTO_CREATE);
+        } catch (Exception e) {
+            Log.e("Plugins", "bindService failed", e);
         }
     }
 
