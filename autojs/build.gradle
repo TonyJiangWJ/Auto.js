@@ -60,8 +60,6 @@ dependencies {
     api 'com.squareup.okhttp3:okhttp:3.14.9'
     // JDeferred
     api 'org.jdeferred:jdeferred-android-aar:1.2.6'
-    //RootShell
-    api 'com.github.Stericson:RootShell:1.6'
     // Gson
     api 'com.google.code.gson:gson:2.10.1'
     // log4j
@@ -79,6 +77,7 @@ dependencies {
     api project(path: ':autojs-aar:rhino-jdk7')
     api project(path: ':autojs-aar:paddleocr')
     api project(path: ':autojs-aar:yolov8ncnn')
+    api project(path: ':autojs-aar:rootshell')
     api project(path: ':common')
     api project(path: ':automator')
 //    implementation 'com.rmtheis:tess-two:9.1.0'
