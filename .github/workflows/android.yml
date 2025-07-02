@@ -2,7 +2,7 @@ name: Android CI
 
 on:
   push:
-    branches: [ "main", "fake_idlefish" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -11,9 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+
+    - name: Setup CMake 3.10.2
+      uses: jwlawson/actions-setup-cmake@v1
+      with:
+        cmake-version: '3.10.2'
+
     - name: set up JDK 20
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '11'
         distribution: 'temurin'
@@ -26,7 +32,7 @@ jobs:
 
     - name: Upload arm64 artifacts
       id: upload-arm64-apk
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: release-arm64-apk
         path: app/build/outputs/apk/release/*arm64-v8a*.apk
@@ -34,7 +40,7 @@ jobs:
 
     - name: Upload armv7 artifacts
       id: upload-armv7-apk
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: release-armv7-apk
         path: app/build/outputs/apk/release/*-v7a*.apk
